@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Calendar, Star, Users } from 'lucide-react';
+import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Calendar, Star, Users, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -153,35 +152,39 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     setScrapingGithub(true);
     try {
       const username = githubUrl.split('/').pop();
+      if (!username) throw new Error('Invalid GitHub URL');
+      
       const response = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=10`);
       
-      if (response.ok) {
-        const repos = await response.json();
-        const projects = repos.map((repo: any) => ({
-          name: repo.name,
-          description: repo.description || 'No description available',
-          language: repo.language,
-          stars: repo.stargazers_count,
-          url: repo.html_url,
-          updated_at: repo.updated_at
-        }));
-        
-        setEditedProfile(prev => ({
-          ...prev,
-          github_projects: projects
-        }));
-        
-        toast({
-          title: "GitHub data imported! 🚀",
-          description: `Found ${projects.length} repositories`,
-        });
-      } else {
-        throw new Error('GitHub user not found');
+      if (!response.ok) {
+        throw new Error(`GitHub API error: ${response.status}`);
       }
-    } catch (error) {
+      
+      const repos = await response.json();
+      const projects = repos.map((repo: any) => ({
+        name: repo.name,
+        description: repo.description || 'No description available',
+        language: repo.language,
+        stars: repo.stargazers_count,
+        url: repo.html_url,
+        updated_at: repo.updated_at,
+        type: 'github'
+      }));
+      
+      setEditedProfile(prev => ({
+        ...prev,
+        github_projects: projects
+      }));
+      
+      toast({
+        title: "GitHub data imported! 🚀",
+        description: `Found ${projects.length} repositories`,
+      });
+    } catch (error: any) {
+      console.error('GitHub scraping error:', error);
       toast({
         title: "Failed to import GitHub data",
-        description: "Please check the URL and try again",
+        description: error.message || "Please check the URL and try again",
         variant: "destructive",
       });
     } finally {
@@ -194,8 +197,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     
     setScrapingLinkedin(true);
     try {
-      // Since LinkedIn scraping requires authentication and is complex,
-      // we'll simulate the process and show a placeholder
+      // Since LinkedIn scraping requires special handling, we'll use mock data
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const mockWorkExperience = [
@@ -203,7 +205,15 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           title: "Software Engineering Intern",
           company: "TechCorp",
           duration: "May 2023 - Aug 2023",
-          description: "Developed full-stack web applications using React and Node.js. Collaborated with cross-functional teams to deliver features for 100k+ users."
+          description: "Developed full-stack web applications using React and Node.js. Collaborated with cross-functional teams to deliver features for 100k+ users.",
+          location: "San Francisco, CA"
+        },
+        {
+          title: "Frontend Developer",
+          company: "StartupXYZ",
+          duration: "Jan 2023 - May 2023",
+          description: "Built responsive web interfaces and improved user experience across multiple products.",
+          location: "Remote"
         }
       ];
       
@@ -212,7 +222,8 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           degree: "Bachelor of Science in Computer Science",
           school: "Stanford University",
           year: "2024",
-          description: "Relevant coursework: Data Structures, Algorithms, Web Development"
+          description: "Relevant coursework: Data Structures, Algorithms, Web Development, Machine Learning",
+          gpa: "3.8"
         }
       ];
       
@@ -224,7 +235,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
       
       toast({
         title: "LinkedIn data imported! 💼",
-        description: "Added work experience and education",
+        description: "Added work experience and education details",
       });
     } catch (error) {
       toast({
@@ -242,26 +253,33 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     
     setScrapingDevpost(true);
     try {
-      // DevPost scraping simulation
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       const mockProjects = [
         {
-          name: "EcoTracker ⭐",
-          description: "Hacklyft 2023 • 2nd Place • Frontend Developer",
-          category: "Best Sustainability Hack",
-          url: devpostUrl
+          name: "EcoTracker",
+          description: "Winner of Best Sustainability Hack at HackMIT 2023. Full-stack web app for tracking carbon footprint with React frontend and Python backend.",
+          category: "Sustainability",
+          url: devpostUrl,
+          language: "React/Python",
+          stars: 45,
+          type: 'devpost',
+          awards: ["1st Place", "Best Sustainability Hack"]
         },
         {
-          name: "StudyBuddy",
-          description: "TreeHacks 2023 • Frontend Developer",
+          name: "StudyBuddy AI",
+          description: "2nd Place at TreeHacks 2023. AI-powered study companion with personalized learning recommendations using machine learning.",
           category: "Education",
-          url: devpostUrl
+          url: devpostUrl,
+          language: "Python/Flask",
+          stars: 32,
+          type: 'devpost',
+          awards: ["2nd Place"]
         }
       ];
       
-      // Add to interests if not already there
-      const hackathonInterests = ['Hackathons', 'Problem Solving', 'Innovation'];
+      // Add hackathon-related interests
+      const hackathonInterests = ['Hackathons', 'Problem Solving', 'Innovation', 'AI/ML'];
       const newInterests = [...(editedProfile.interests || [])];
       hackathonInterests.forEach(interest => {
         if (!newInterests.includes(interest)) {
@@ -272,7 +290,6 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
       setEditedProfile(prev => ({
         ...prev,
         interests: newInterests,
-        // Store DevPost projects in github_projects for now (could create separate field)
         github_projects: [...prev.github_projects, ...mockProjects]
       }));
       
@@ -289,6 +306,82 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     } finally {
       setScrapingDevpost(false);
     }
+  };
+
+  const addWorkExperience = () => {
+    const newJob = {
+      title: "",
+      company: "",
+      duration: "",
+      description: "",
+      location: ""
+    };
+    setEditedProfile(prev => ({
+      ...prev,
+      work_experience: [...prev.work_experience, newJob]
+    }));
+  };
+
+  const updateWorkExperience = (index: number, field: string, value: string) => {
+    const updated = [...editedProfile.work_experience];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditedProfile(prev => ({ ...prev, work_experience: updated }));
+  };
+
+  const removeWorkExperience = (index: number) => {
+    const updated = editedProfile.work_experience.filter((_, i) => i !== index);
+    setEditedProfile(prev => ({ ...prev, work_experience: updated }));
+  };
+
+  const addEducation = () => {
+    const newEdu = {
+      degree: "",
+      school: "",
+      year: "",
+      description: "",
+      gpa: ""
+    };
+    setEditedProfile(prev => ({
+      ...prev,
+      education_details: [...prev.education_details, newEdu]
+    }));
+  };
+
+  const updateEducation = (index: number, field: string, value: string) => {
+    const updated = [...editedProfile.education_details];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditedProfile(prev => ({ ...prev, education_details: updated }));
+  };
+
+  const removeEducation = (index: number) => {
+    const updated = editedProfile.education_details.filter((_, i) => i !== index);
+    setEditedProfile(prev => ({ ...prev, education_details: updated }));
+  };
+
+  const addProject = () => {
+    const newProject = {
+      name: "",
+      description: "",
+      language: "",
+      url: "",
+      stars: 0,
+      type: 'manual'
+    };
+    setEditedProfile(prev => ({
+      ...prev,
+      github_projects: [...prev.github_projects, newProject]
+    }));
+  };
+
+  const updateProject = (index: number, field: string, value: any) => {
+    const updated = [...editedProfile.github_projects];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditedProfile(prev => ({ ...prev, github_projects: updated }));
+  };
+
+  const removeProject = (index: number) => {
+    const updated = editedProfile.github_projects.filter((_, i) => i !== index);
+    setEditedProfile(prev => ({ ...prev, github_projects: updated }));
   };
 
   const handleEditClick = () => {
@@ -386,24 +479,44 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           </div>
           {user && (
             <div className="flex space-x-3">
-              <button 
-                onClick={handleEditClick}
-                className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors flex items-center space-x-2"
-              >
-                <Edit className="w-4 h-4" />
-                <span>Edit Profile</span>
-              </button>
-              <button className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2">
-                <Users className="w-4 h-4" />
-                <span>Join Event</span>
-              </button>
-              <button
-                onClick={handleSignOut}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sign Out</span>
-              </button>
+              {!isEditing ? (
+                <>
+                  <button 
+                    onClick={handleEditClick}
+                    className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors flex items-center space-x-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Edit Profile</span>
+                  </button>
+                  <button className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2">
+                    <Users className="w-4 h-4" />
+                    <span>Join Event</span>
+                  </button>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign Out</span>
+                  </button>
+                </>
+              ) : (
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleCancel}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors flex items-center space-x-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Save All Changes</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -529,25 +642,6 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                   </div>
                 )}
               </div>
-
-              {/* Action Buttons */}
-              {isEditing && (
-                <div className="flex space-x-3">
-                  <button
-                    onClick={handleCancel}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    className="flex-1 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Save className="w-4 h-4" />
-                    <span>Save</span>
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Social Links Card */}
@@ -670,20 +764,30 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
             {/* Interests Card */}
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Interests</h3>
-              <div className="flex flex-wrap gap-2">
-                {(profile.interests && profile.interests.length > 0) ? (
-                  profile.interests.map((interest, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium"
-                    >
-                      {interest}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-gray-400 text-sm">No interests added yet</span>
-                )}
-              </div>
+              {isEditing ? (
+                <textarea
+                  value={editedProfile.interests?.join(', ') || ''}
+                  onChange={(e) => setEditedProfile({...editedProfile, interests: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
+                  rows={3}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-gray-800 placeholder-gray-500 focus:border-pink-500 focus:outline-none resize-none"
+                  placeholder="Enter interests separated by commas..."
+                />
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {(profile.interests && profile.interests.length > 0) ? (
+                    profile.interests.map((interest, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium"
+                      >
+                        {interest}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-400 text-sm">No interests added yet</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -691,93 +795,305 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           <div className="lg:col-span-2 space-y-6">
             {/* Work Experience */}
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                <Building className="w-6 h-6 mr-3 text-pink-500" />
-                Work Experience
-              </h3>
-              {profile.work_experience && profile.work_experience.length > 0 ? (
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <Building className="w-6 h-6 mr-3 text-pink-500" />
+                  Work Experience
+                </h3>
+                {isEditing && (
+                  <button
+                    onClick={addWorkExperience}
+                    className="flex items-center space-x-2 px-3 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add</span>
+                  </button>
+                )}
+              </div>
+              {isEditing ? (
                 <div className="space-y-6">
-                  {profile.work_experience.map((job: any, index: number) => (
-                    <div key={index} className="border-l-4 border-pink-300 pl-6 pb-6 last:pb-0">
-                      <h4 className="text-lg font-semibold text-gray-800">{job.title}</h4>
-                      <p className="text-pink-600 font-medium">{job.company}</p>
-                      <p className="text-gray-500 text-sm mb-3">{job.duration}</p>
-                      <p className="text-gray-600">{job.description}</p>
+                  {editedProfile.work_experience.map((job: any, index: number) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-semibold text-gray-800">Job #{index + 1}</h4>
+                        <button
+                          onClick={() => removeWorkExperience(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={job.title || ''}
+                        onChange={(e) => updateWorkExperience(index, 'title', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder="Job Title"
+                      />
+                      <input
+                        type="text"
+                        value={job.company || ''}
+                        onChange={(e) => updateWorkExperience(index, 'company', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder="Company"
+                      />
+                      <input
+                        type="text"
+                        value={job.duration || ''}
+                        onChange={(e) => updateWorkExperience(index, 'duration', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder="Duration (e.g., Jan 2023 - Dec 2023)"
+                      />
+                      <input
+                        type="text"
+                        value={job.location || ''}
+                        onChange={(e) => updateWorkExperience(index, 'location', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder="Location"
+                      />
+                      <textarea
+                        value={job.description || ''}
+                        onChange={(e) => updateWorkExperience(index, 'description', e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"
+                        placeholder="Job Description"
+                      />
                     </div>
                   ))}
+                  {editedProfile.work_experience.length === 0 && (
+                    <p className="text-gray-400 text-center py-4">No work experience added yet. Click "Add" to get started.</p>
+                  )}
                 </div>
               ) : (
-                <p className="text-gray-400">No work experience added yet</p>
+                profile.work_experience && profile.work_experience.length > 0 ? (
+                  <div className="space-y-6">
+                    {profile.work_experience.map((job: any, index: number) => (
+                      <div key={index} className="border-l-4 border-pink-300 pl-6 pb-6 last:pb-0">
+                        <h4 className="text-lg font-semibold text-gray-800">{job.title}</h4>
+                        <p className="text-pink-600 font-medium">{job.company}</p>
+                        <p className="text-gray-500 text-sm mb-3">{job.duration}</p>
+                        {job.location && <p className="text-gray-500 text-sm mb-3">{job.location}</p>}
+                        <p className="text-gray-600">{job.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400">No work experience added yet</p>
+                )
               )}
             </div>
 
             {/* Education */}
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                <GraduationCap className="w-6 h-6 mr-3 text-purple-500" />
-                Education
-              </h3>
-              {profile.education_details && profile.education_details.length > 0 ? (
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <GraduationCap className="w-6 h-6 mr-3 text-purple-500" />
+                  Education
+                </h3>
+                {isEditing && (
+                  <button
+                    onClick={addEducation}
+                    className="flex items-center space-x-2 px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add</span>
+                  </button>
+                )}
+              </div>
+              {isEditing ? (
                 <div className="space-y-6">
-                  {profile.education_details.map((edu: any, index: number) => (
-                    <div key={index} className="border-l-4 border-purple-300 pl-6 pb-6 last:pb-0">
-                      <h4 className="text-lg font-semibold text-gray-800">{edu.degree}</h4>
-                      <p className="text-purple-600 font-medium">{edu.school}</p>
-                      <p className="text-gray-500 text-sm mb-3">{edu.year}</p>
-                      <p className="text-gray-600">{edu.description}</p>
+                  {editedProfile.education_details.map((edu: any, index: number) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-semibold text-gray-800">Education #{index + 1}</h4>
+                        <button
+                          onClick={() => removeEducation(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={edu.degree || ''}
+                        onChange={(e) => updateEducation(index, 'degree', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Degree"
+                      />
+                      <input
+                        type="text"
+                        value={edu.school || ''}
+                        onChange={(e) => updateEducation(index, 'school', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="School/University"
+                      />
+                      <input
+                        type="text"
+                        value={edu.year || ''}
+                        onChange={(e) => updateEducation(index, 'year', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Year (e.g., 2024)"
+                      />
+                      <input
+                        type="text"
+                        value={edu.gpa || ''}
+                        onChange={(e) => updateEducation(index, 'gpa', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="GPA (optional)"
+                      />
+                      <textarea
+                        value={edu.description || ''}
+                        onChange={(e) => updateEducation(index, 'description', e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                        placeholder="Description (coursework, achievements, etc.)"
+                      />
                     </div>
                   ))}
+                  {editedProfile.education_details.length === 0 && (
+                    <p className="text-gray-400 text-center py-4">No education details added yet. Click "Add" to get started.</p>
+                  )}
                 </div>
               ) : (
-                <p className="text-gray-400">No education details added yet</p>
+                profile.education_details && profile.education_details.length > 0 ? (
+                  <div className="space-y-6">
+                    {profile.education_details.map((edu: any, index: number) => (
+                      <div key={index} className="border-l-4 border-purple-300 pl-6 pb-6 last:pb-0">
+                        <h4 className="text-lg font-semibold text-gray-800">{edu.degree}</h4>
+                        <p className="text-purple-600 font-medium">{edu.school}</p>
+                        <p className="text-gray-500 text-sm mb-3">{edu.year}</p>
+                        {edu.gpa && <p className="text-gray-500 text-sm mb-3">GPA: {edu.gpa}</p>}
+                        <p className="text-gray-600">{edu.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400">No education details added yet</p>
+                )
               )}
             </div>
 
             {/* Projects */}
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                <Star className="w-6 h-6 mr-3 text-yellow-500" />
-                Projects & Repositories
-              </h3>
-              {profile.github_projects && profile.github_projects.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {profile.github_projects.map((project: any, index: number) => (
-                    <div key={index} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border border-gray-200">
-                      <div className="flex items-start justify-between mb-3">
-                        <h4 className="font-semibold text-gray-800 text-lg">{project.name}</h4>
-                        {project.url && (
-                          <a href={project.url} target="_blank" rel="noopener noreferrer" 
-                             className="text-pink-500 hover:text-pink-600">
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <Star className="w-6 h-6 mr-3 text-yellow-500" />
+                  Projects & Repositories
+                </h3>
+                {isEditing && (
+                  <button
+                    onClick={addProject}
+                    className="flex items-center space-x-2 px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add</span>
+                  </button>
+                )}
+              </div>
+              {isEditing ? (
+                <div className="space-y-6">
+                  {editedProfile.github_projects.map((project: any, index: number) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-semibold text-gray-800">
+                          Project #{index + 1} 
+                          {project.type && <span className="text-sm text-gray-500 ml-2">({project.type})</span>}
+                        </h4>
+                        {project.type !== 'github' && project.type !== 'devpost' && (
+                          <button
+                            onClick={() => removeProject(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         )}
                       </div>
-                      <p className="text-gray-600 text-sm mb-3">{project.description}</p>
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center space-x-3">
-                          {project.language && (
-                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                              {project.language}
-                            </span>
-                          )}
-                          {project.stars !== undefined && (
-                            <span className="flex items-center text-yellow-600">
-                              <Star className="w-3 h-3 mr-1" />
-                              {project.stars}
-                            </span>
-                          )}
-                        </div>
-                        {project.updated_at && (
-                          <span className="text-gray-500">
-                            Updated {new Date(project.updated_at).toLocaleDateString()}
-                          </span>
-                        )}
+                      <input
+                        type="text"
+                        value={project.name || ''}
+                        onChange={(e) => updateProject(index, 'name', e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        placeholder="Project Name"
+                        disabled={project.type === 'github' || project.type === 'devpost'}
+                      />
+                      <textarea
+                        value={project.description || ''}
+                        onChange={(e) => updateProject(index, 'description', e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none"
+                        placeholder="Project Description"
+                        disabled={project.type === 'github' || project.type === 'devpost'}
+                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          value={project.language || ''}
+                          onChange={(e) => updateProject(index, 'language', e.target.value)}
+                          className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                          placeholder="Language/Tech"
+                          disabled={project.type === 'github'}
+                        />
+                        <input
+                          type="url"
+                          value={project.url || ''}
+                          onChange={(e) => updateProject(index, 'url', e.target.value)}
+                          className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                          placeholder="Project URL"
+                          disabled={project.type === 'github' || project.type === 'devpost'}
+                        />
                       </div>
                     </div>
                   ))}
+                  {editedProfile.github_projects.length === 0 && (
+                    <p className="text-gray-400 text-center py-4">No projects added yet. Import from GitHub/DevPost or click "Add" to create manually.</p>
+                  )}
                 </div>
               ) : (
-                <p className="text-gray-400">No projects found. Connect your GitHub to import repositories automatically.</p>
+                profile.github_projects && profile.github_projects.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {profile.github_projects.map((project: any, index: number) => (
+                      <div key={index} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border border-gray-200">
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="font-semibold text-gray-800 text-lg">{project.name}</h4>
+                          {project.url && (
+                            <a href={project.url} target="_blank" rel="noopener noreferrer" 
+                               className="text-pink-500 hover:text-pink-600">
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
+                        <p className="text-gray-600 text-sm mb-3">{project.description}</p>
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center space-x-3">
+                            {project.language && (
+                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                                {project.language}
+                              </span>
+                            )}
+                            {project.stars !== undefined && (
+                              <span className="flex items-center text-yellow-600">
+                                <Star className="w-3 h-3 mr-1" />
+                                {project.stars}
+                              </span>
+                            )}
+                            {project.awards && project.awards.length > 0 && (
+                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded">
+                                {project.awards[0]}
+                              </span>
+                            )}
+                          </div>
+                          {project.updated_at && (
+                            <span className="text-gray-500">
+                              Updated {new Date(project.updated_at).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400">No projects found. Connect your GitHub to import repositories automatically.</p>
+                )
               )}
             </div>
           </div>
