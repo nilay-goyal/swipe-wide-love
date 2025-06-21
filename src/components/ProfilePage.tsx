@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Edit, Save, Camera, MapPin, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -17,11 +16,15 @@ interface UserProfile {
   education: string | null;
 }
 
-const ProfilePage = () => {
+interface ProfilePageProps {
+  onEditRequireAuth?: () => void;
+}
+
+const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
     name: '',
@@ -45,6 +48,7 @@ const ProfilePage = () => {
   const fetchProfile = async () => {
     if (!user) return;
 
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -78,6 +82,14 @@ const ProfilePage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditClick = () => {
+    if (!user) {
+      onEditRequireAuth?.();
+      return;
+    }
+    setIsEditing(true);
   };
 
   const handleSave = async () => {
@@ -139,35 +151,52 @@ const ProfilePage = () => {
   }
 
   const isProfileEmpty = !profile.name && !profile.age && !profile.bio;
+  const showWelcomeMessage = !user || (user && isProfileEmpty && !isEditing);
 
   return (
     <div className="py-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">My Profile</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              {user ? 'My Profile' : 'Profile'}
+            </h1>
             <p className="text-gray-600">
-              {isProfileEmpty ? 'Complete your profile to get started' : 'Manage your dating profile information'}
+              {!user 
+                ? 'Sign in to create and manage your dating profile'
+                : showWelcomeMessage 
+                ? 'Complete your profile to get started' 
+                : 'Manage your dating profile information'
+              }
             </p>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
-          </button>
+          {user && (
+            <button
+              onClick={handleSignOut}
+              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </button>
+          )}
         </div>
 
-        {isProfileEmpty && !isEditing && (
+        {showWelcomeMessage && (
           <div className="bg-pink-50 border border-pink-200 rounded-xl p-6 mb-6">
-            <h3 className="text-lg font-semibold text-pink-800 mb-2">Welcome to your profile!</h3>
-            <p className="text-pink-700 mb-4">Your profile is currently empty. Click "Edit Profile" to add your information and start connecting with others.</p>
+            <h3 className="text-lg font-semibold text-pink-800 mb-2">
+              {!user ? 'Welcome!' : 'Welcome to your profile!'}
+            </h3>
+            <p className="text-pink-700 mb-4">
+              {!user 
+                ? 'Create an account to build your dating profile and start connecting with others.'
+                : 'Your profile is currently empty. Click "Edit Profile" to add your information and start connecting with others.'
+              }
+            </p>
             <button
-              onClick={() => setIsEditing(true)}
+              onClick={handleEditClick}
               className="px-4 py-2 dating-gradient text-white rounded-lg hover:opacity-90 transition-opacity"
             >
-              Complete Your Profile
+              {!user ? 'Get Started' : 'Complete Your Profile'}
             </button>
           </div>
         )}
@@ -230,7 +259,7 @@ const ProfilePage = () => {
                     </>
                   ) : (
                     <button
-                      onClick={() => setIsEditing(true)}
+                      onClick={handleEditClick}
                       className="px-4 py-2 dating-gradient text-white rounded-lg hover:opacity-90 transition-opacity flex items-center space-x-2"
                     >
                       <Edit className="w-4 h-4" />

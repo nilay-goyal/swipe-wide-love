@@ -5,7 +5,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const AuthPage = () => {
+interface AuthPageProps {
+  onAuthSuccess?: () => void;
+}
+
+const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,6 +31,7 @@ const AuthPage = () => {
           title: "Welcome back! 💕",
           description: "You've successfully signed in",
         });
+        onAuthSuccess?.();
       } else {
         const { error } = await supabase.auth.signUp({
           email,

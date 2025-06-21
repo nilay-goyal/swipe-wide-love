@@ -11,7 +11,8 @@ import AuthPage from '../components/AuthPage';
 
 const Index = () => {
   const { user, loading } = useAuth();
-  const [currentPage, setCurrentPage] = useState('profile'); // Default to profile page
+  const [currentPage, setCurrentPage] = useState('profile');
+  const [showAuth, setShowAuth] = useState(false);
 
   if (loading) {
     return (
@@ -21,30 +22,46 @@ const Index = () => {
     );
   }
 
-  if (!user) {
-    return <AuthPage />;
+  if (showAuth) {
+    return <AuthPage onAuthSuccess={() => setShowAuth(false)} />;
   }
 
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'discover':
-        return <DiscoverPage />;
+        return user ? <DiscoverPage /> : <AuthPage onAuthSuccess={() => setShowAuth(false)} />;
       case 'events':
-        return <EventsPage />;
+        return user ? <EventsPage /> : <AuthPage onAuthSuccess={() => setShowAuth(false)} />;
       case 'premium':
-        return <PremiumPage />;
+        return user ? <PremiumPage /> : <AuthPage onAuthSuccess={() => setShowAuth(false)} />;
       case 'messages':
-        return <MessagesPage />;
+        return user ? <MessagesPage /> : <AuthPage onAuthSuccess={() => setShowAuth(false)} />;
       case 'profile':
-        return <ProfilePage />;
+        return <ProfilePage onEditRequireAuth={() => setShowAuth(true)} />;
       default:
-        return <ProfilePage />;
+        return <ProfilePage onEditRequireAuth={() => setShowAuth(true)} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-50 pb-32">
-      <main className="container mx-auto px-4 pt-8">
+      {/* Company Header */}
+      <header className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-pink-100">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center border-2 border-yellow-500">
+              <div className="w-4 h-4 bg-white rounded-full relative">
+                <div className="absolute top-1 left-1 w-2 h-2 bg-orange-400 rounded-full"></div>
+              </div>
+            </div>
+            <h1 className="text-xl font-bold dating-gradient bg-clip-text text-transparent">
+              Ctrl +f
+            </h1>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 pt-20">
         {renderCurrentPage()}
       </main>
       
