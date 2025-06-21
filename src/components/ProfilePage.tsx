@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -19,9 +18,9 @@ interface UserProfile {
   github_url: string | null;
   devpost_url: string | null;
   linkedin_url: string | null;
-  github_projects: any[] | null;
-  work_experience: any[] | null;
-  education_details: any[] | null;
+  github_projects: any[];
+  work_experience: any[];
+  education_details: any[];
 }
 
 interface ProfilePageProps {
@@ -75,7 +74,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
       if (error) throw error;
 
       if (data) {
-        const profileData = {
+        const profileData: UserProfile = {
           id: data.id,
           name: data.name || '',
           age: data.age,
@@ -88,9 +87,9 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           github_url: data.github_url,
           devpost_url: data.devpost_url,
           linkedin_url: data.linkedin_url,
-          github_projects: data.github_projects || [],
-          work_experience: data.work_experience || [],
-          education_details: data.education_details || []
+          github_projects: Array.isArray(data.github_projects) ? data.github_projects : [],
+          work_experience: Array.isArray(data.work_experience) ? data.work_experience : [],
+          education_details: Array.isArray(data.education_details) ? data.education_details : []
         };
         setProfile(profileData);
         setEditedProfile(profileData);
