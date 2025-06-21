@@ -83,7 +83,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           bio: data.bio || '',
           location: data.location || '',
           photos: data.photos || ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'],
-          interests: data.interests || [],
+          interests: Array.isArray(data.interests) ? data.interests : [],
           occupation: data.occupation || '',
           education: data.education || '',
           github_url: data.github_url,
@@ -367,15 +367,15 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   const showWelcomeMessage = !user || (user && isProfileEmpty && !isEditing);
 
   return (
-    <div className="py-8 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen">
+    <div className="py-8 min-h-screen">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
               {user ? 'My Profile' : 'Profile'}
             </h1>
-            <p className="text-gray-300">
+            <p className="text-gray-600">
               {!user 
                 ? 'Sign in to create and manage your dating profile'
                 : showWelcomeMessage 
@@ -388,18 +388,18 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
             <div className="flex space-x-3">
               <button 
                 onClick={handleEditClick}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors flex items-center space-x-2"
               >
                 <Edit className="w-4 h-4" />
                 <span>Edit Profile</span>
               </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+              <button className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2">
                 <Users className="w-4 h-4" />
                 <span>Join Event</span>
               </button>
               <button
                 onClick={handleSignOut}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out</span>
@@ -433,17 +433,17 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           {/* Left Column - Profile Info & Photo */}
           <div className="lg:col-span-1 space-y-6">
             {/* Profile Card */}
-            <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
               {/* Profile Photo */}
               <div className="text-center mb-6">
                 <div className="relative inline-block">
-                  <Avatar className="w-40 h-40 border-4 border-purple-500 mx-auto">
+                  <Avatar className="w-40 h-40 border-4 border-pink-200 mx-auto">
                     <AvatarImage
                       src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'}
                       alt="Profile main"
                       className="object-cover"
                     />
-                    <AvatarFallback className="text-3xl">
+                    <AvatarFallback className="text-3xl bg-pink-100 text-pink-600">
                       {profile.name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
@@ -462,11 +462,11 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                     type="text"
                     value={editedProfile.name || ''}
                     onChange={(e) => setEditedProfile({...editedProfile, name: e.target.value})}
-                    className="text-2xl font-bold bg-transparent border-b-2 border-purple-500 text-white placeholder-white/70 focus:border-purple-300 focus:outline-none text-center w-full mb-2"
+                    className="text-2xl font-bold bg-transparent border-b-2 border-pink-300 text-gray-800 placeholder-gray-500 focus:border-pink-500 focus:outline-none text-center w-full mb-2"
                     placeholder="Enter your name"
                   />
                 ) : (
-                  <h2 className="text-2xl font-bold text-white mb-2">{profile.name || 'Anonymous'}</h2>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">{profile.name || 'Anonymous'}</h2>
                 )}
                 
                 {isEditing ? (
@@ -474,27 +474,27 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                     type="number"
                     value={editedProfile.age || ''}
                     onChange={(e) => setEditedProfile({...editedProfile, age: parseInt(e.target.value) || null})}
-                    className="text-lg bg-transparent border-b border-purple-500 text-gray-300 placeholder-white/70 focus:border-purple-300 focus:outline-none text-center w-24"
+                    className="text-lg bg-transparent border-b border-pink-300 text-gray-600 placeholder-gray-500 focus:border-pink-500 focus:outline-none text-center w-24"
                     placeholder="Age"
                   />
                 ) : (
-                  <p className="text-lg text-gray-300">{profile.age ? `${profile.age} years old` : 'Age not specified'}</p>
+                  <p className="text-lg text-gray-600">{profile.age ? `${profile.age} years old` : 'Age not specified'}</p>
                 )}
               </div>
 
               {/* Bio */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-white mb-3">About</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">About</h3>
                 {isEditing ? (
                   <textarea
                     value={editedProfile.bio || ''}
                     onChange={(e) => setEditedProfile({...editedProfile, bio: e.target.value})}
                     rows={4}
-                    className="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none resize-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-gray-800 placeholder-gray-500 focus:border-pink-500 focus:outline-none resize-none"
                     placeholder="Tell people about yourself..."
                   />
                 ) : (
-                  <p className="text-gray-300 leading-relaxed">
+                  <p className="text-gray-600 leading-relaxed">
                     {profile.bio || 'No bio added yet'}
                   </p>
                 )}
@@ -502,8 +502,8 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
               {/* Location */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-                  <MapPin className="w-5 h-5 mr-2" />
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                  <MapPin className="w-5 h-5 mr-2 text-pink-500" />
                   Location
                 </h3>
                 {isEditing ? (
@@ -512,19 +512,19 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                       type="text"
                       value={editedProfile.location || ''}
                       onChange={(e) => setEditedProfile({...editedProfile, location: e.target.value})}
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
                       placeholder="Enter location manually"
                     />
                     <button
                       onClick={getCurrentLocation}
-                      className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                      className="w-full px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors flex items-center justify-center space-x-2"
                     >
                       <MapPin className="w-4 h-4" />
                       <span>Use Current Location</span>
                     </button>
                   </div>
                 ) : (
-                  <div className="flex items-center text-gray-300">
+                  <div className="flex items-center text-gray-600">
                     <span>{profile.location || 'Location not set'}</span>
                   </div>
                 )}
@@ -535,13 +535,13 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                 <div className="flex space-x-3">
                   <button
                     onClick={handleCancel}
-                    className="flex-1 px-4 py-2 border border-slate-600 rounded-lg text-white hover:bg-slate-700 transition-colors"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSave}
-                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                    className="flex-1 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors flex items-center justify-center space-x-2"
                   >
                     <Save className="w-4 h-4" />
                     <span>Save</span>
@@ -551,27 +551,27 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
             </div>
 
             {/* Social Links Card */}
-            <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
-              <h3 className="text-lg font-semibold text-white mb-4">Social Links</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Social Links</h3>
               {isEditing ? (
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center space-x-2 mb-2">
-                      <Github className="w-5 h-5 text-white" />
-                      <span className="text-white">GitHub</span>
+                      <Github className="w-5 h-5 text-gray-700" />
+                      <span className="text-gray-700">GitHub</span>
                     </div>
                     <div className="flex space-x-2">
                       <input
                         type="url"
                         value={editedProfile.github_url || ''}
                         onChange={(e) => setEditedProfile({...editedProfile, github_url: e.target.value})}
-                        className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
                         placeholder="GitHub URL"
                       />
                       <button
                         onClick={() => scrapeGithubData(editedProfile.github_url || '')}
                         disabled={!editedProfile.github_url || scrapingGithub}
-                        className="px-3 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50"
+                        className="px-3 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
                       >
                         {scrapingGithub ? '...' : 'Import'}
                       </button>
@@ -579,15 +579,15 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                   </div>
                   <div>
                     <div className="flex items-center space-x-2 mb-2">
-                      <Linkedin className="w-5 h-5 text-white" />
-                      <span className="text-white">LinkedIn</span>
+                      <Linkedin className="w-5 h-5 text-gray-700" />
+                      <span className="text-gray-700">LinkedIn</span>
                     </div>
                     <div className="flex space-x-2">
                       <input
                         type="url"
                         value={editedProfile.linkedin_url || ''}
                         onChange={(e) => setEditedProfile({...editedProfile, linkedin_url: e.target.value})}
-                        className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
                         placeholder="LinkedIn URL"
                       />
                       <button
@@ -601,15 +601,15 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                   </div>
                   <div>
                     <div className="flex items-center space-x-2 mb-2">
-                      <ExternalLink className="w-5 h-5 text-white" />
-                      <span className="text-white">DevPost</span>
+                      <ExternalLink className="w-5 h-5 text-gray-700" />
+                      <span className="text-gray-700">DevPost</span>
                     </div>
                     <div className="flex space-x-2">
                       <input
                         type="url"
                         value={editedProfile.devpost_url || ''}
                         onChange={(e) => setEditedProfile({...editedProfile, devpost_url: e.target.value})}
-                        className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
                         placeholder="DevPost URL"
                       />
                       <button
@@ -626,39 +626,39 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                 <div className="space-y-3">
                   {profile.github_url ? (
                     <a href={profile.github_url} target="_blank" rel="noopener noreferrer" 
-                       className="flex items-center space-x-2 p-3 bg-slate-700 rounded-lg text-white hover:bg-slate-600 transition-colors">
+                       className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
                       <Github className="w-5 h-5" />
                       <span className="flex-1">GitHub</span>
                       <ExternalLink className="w-4 h-4" />
                     </a>
                   ) : (
-                    <div className="flex items-center space-x-2 p-3 bg-slate-700/50 rounded-lg text-gray-500">
+                    <div className="flex items-center space-x-2 p-3 bg-gray-50/50 rounded-lg text-gray-400">
                       <Github className="w-5 h-5" />
                       <span>No GitHub linked</span>
                     </div>
                   )}
                   {profile.linkedin_url ? (
                     <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center space-x-2 p-3 bg-slate-700 rounded-lg text-white hover:bg-slate-600 transition-colors">
+                       className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
                       <Linkedin className="w-5 h-5" />
                       <span className="flex-1">LinkedIn</span>
                       <ExternalLink className="w-4 h-4" />
                     </a>
                   ) : (
-                    <div className="flex items-center space-x-2 p-3 bg-slate-700/50 rounded-lg text-gray-500">
+                    <div className="flex items-center space-x-2 p-3 bg-gray-50/50 rounded-lg text-gray-400">
                       <Linkedin className="w-5 h-5" />
                       <span>No LinkedIn linked</span>
                     </div>
                   )}
                   {profile.devpost_url ? (
                     <a href={profile.devpost_url} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center space-x-2 p-3 bg-slate-700 rounded-lg text-white hover:bg-slate-600 transition-colors">
+                       className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
                       <ExternalLink className="w-5 h-5" />
                       <span className="flex-1">DevPost</span>
                       <ExternalLink className="w-4 h-4" />
                     </a>
                   ) : (
-                    <div className="flex items-center space-x-2 p-3 bg-slate-700/50 rounded-lg text-gray-500">
+                    <div className="flex items-center space-x-2 p-3 bg-gray-50/50 rounded-lg text-gray-400">
                       <ExternalLink className="w-5 h-5" />
                       <span>No DevPost linked</span>
                     </div>
@@ -668,14 +668,14 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
             </div>
 
             {/* Interests Card */}
-            <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
-              <h3 className="text-lg font-semibold text-white mb-4">Interests</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Interests</h3>
               <div className="flex flex-wrap gap-2">
                 {(profile.interests && profile.interests.length > 0) ? (
                   profile.interests.map((interest, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm font-medium"
+                      className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium"
                     >
                       {interest}
                     </span>
@@ -690,19 +690,19 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           {/* Right Column - Experience & Projects */}
           <div className="lg:col-span-2 space-y-6">
             {/* Work Experience */}
-            <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
-              <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
-                <Building className="w-6 h-6 mr-3" />
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                <Building className="w-6 h-6 mr-3 text-pink-500" />
                 Work Experience
               </h3>
               {profile.work_experience && profile.work_experience.length > 0 ? (
                 <div className="space-y-6">
                   {profile.work_experience.map((job: any, index: number) => (
-                    <div key={index} className="border-l-4 border-green-500 pl-6 pb-6 last:pb-0">
-                      <h4 className="text-lg font-semibold text-white">{job.title}</h4>
-                      <p className="text-green-400 font-medium">{job.company}</p>
+                    <div key={index} className="border-l-4 border-pink-300 pl-6 pb-6 last:pb-0">
+                      <h4 className="text-lg font-semibold text-gray-800">{job.title}</h4>
+                      <p className="text-pink-600 font-medium">{job.company}</p>
                       <p className="text-gray-500 text-sm mb-3">{job.duration}</p>
-                      <p className="text-gray-300">{job.description}</p>
+                      <p className="text-gray-600">{job.description}</p>
                     </div>
                   ))}
                 </div>
@@ -712,19 +712,19 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
             </div>
 
             {/* Education */}
-            <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
-              <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
-                <GraduationCap className="w-6 h-6 mr-3" />
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                <GraduationCap className="w-6 h-6 mr-3 text-purple-500" />
                 Education
               </h3>
               {profile.education_details && profile.education_details.length > 0 ? (
                 <div className="space-y-6">
                   {profile.education_details.map((edu: any, index: number) => (
-                    <div key={index} className="border-l-4 border-purple-500 pl-6 pb-6 last:pb-0">
-                      <h4 className="text-lg font-semibold text-white">{edu.degree}</h4>
-                      <p className="text-purple-400 font-medium">{edu.school}</p>
+                    <div key={index} className="border-l-4 border-purple-300 pl-6 pb-6 last:pb-0">
+                      <h4 className="text-lg font-semibold text-gray-800">{edu.degree}</h4>
+                      <p className="text-purple-600 font-medium">{edu.school}</p>
                       <p className="text-gray-500 text-sm mb-3">{edu.year}</p>
-                      <p className="text-gray-300">{edu.description}</p>
+                      <p className="text-gray-600">{edu.description}</p>
                     </div>
                   ))}
                 </div>
@@ -734,34 +734,34 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
             </div>
 
             {/* Projects */}
-            <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
-              <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
-                <Star className="w-6 h-6 mr-3" />
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                <Star className="w-6 h-6 mr-3 text-yellow-500" />
                 Projects & Repositories
               </h3>
               {profile.github_projects && profile.github_projects.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {profile.github_projects.map((project: any, index: number) => (
-                    <div key={index} className="bg-slate-700 rounded-lg p-4 hover:bg-slate-600 transition-colors">
+                    <div key={index} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border border-gray-200">
                       <div className="flex items-start justify-between mb-3">
-                        <h4 className="font-semibold text-white text-lg">{project.name}</h4>
+                        <h4 className="font-semibold text-gray-800 text-lg">{project.name}</h4>
                         {project.url && (
                           <a href={project.url} target="_blank" rel="noopener noreferrer" 
-                             className="text-blue-400 hover:text-blue-300">
+                             className="text-pink-500 hover:text-pink-600">
                             <ExternalLink className="w-4 h-4" />
                           </a>
                         )}
                       </div>
-                      <p className="text-gray-300 text-sm mb-3">{project.description}</p>
+                      <p className="text-gray-600 text-sm mb-3">{project.description}</p>
                       <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center space-x-3">
                           {project.language && (
-                            <span className="px-2 py-1 bg-blue-600 text-white rounded">
+                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
                               {project.language}
                             </span>
                           )}
                           {project.stars !== undefined && (
-                            <span className="flex items-center text-yellow-400">
+                            <span className="flex items-center text-yellow-600">
                               <Star className="w-3 h-3 mr-1" />
                               {project.stars}
                             </span>
