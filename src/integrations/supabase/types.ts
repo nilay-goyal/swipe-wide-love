@@ -9,6 +9,60 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      data: {
+        Row: {
+          "Backend Dev": number | null
+          "Check the skills you're comfortable with:": string | null
+          Cybersecurity: number | null
+          "Enter name:": string
+          "Enter the major you're pursuing:": string | null
+          "Enter the school/university you're attending:": string | null
+          "Enter your year:": string | null
+          "Frontend Dev": number | null
+          "Hardware / Arduino / Raspberry Pi": number | null
+          "Pitching / Public Speaking": number | null
+          "Project Management (Notion, Trello, etc.)": number | null
+          "Provide a link to your Devpost profile:": string | null
+          "Provide a link to your GitHub:": string | null
+          Timestamp: string | null
+          "UI/UX Design (Figma, Adobe XD)": number | null
+        }
+        Insert: {
+          "Backend Dev"?: number | null
+          "Check the skills you're comfortable with:"?: string | null
+          Cybersecurity?: number | null
+          "Enter name:": string
+          "Enter the major you're pursuing:"?: string | null
+          "Enter the school/university you're attending:"?: string | null
+          "Enter your year:"?: string | null
+          "Frontend Dev"?: number | null
+          "Hardware / Arduino / Raspberry Pi"?: number | null
+          "Pitching / Public Speaking"?: number | null
+          "Project Management (Notion, Trello, etc.)"?: number | null
+          "Provide a link to your Devpost profile:"?: string | null
+          "Provide a link to your GitHub:"?: string | null
+          Timestamp?: string | null
+          "UI/UX Design (Figma, Adobe XD)"?: number | null
+        }
+        Update: {
+          "Backend Dev"?: number | null
+          "Check the skills you're comfortable with:"?: string | null
+          Cybersecurity?: number | null
+          "Enter name:"?: string
+          "Enter the major you're pursuing:"?: string | null
+          "Enter the school/university you're attending:"?: string | null
+          "Enter your year:"?: string | null
+          "Frontend Dev"?: number | null
+          "Hardware / Arduino / Raspberry Pi"?: number | null
+          "Pitching / Public Speaking"?: number | null
+          "Project Management (Notion, Trello, etc.)"?: number | null
+          "Provide a link to your Devpost profile:"?: string | null
+          "Provide a link to your GitHub:"?: string | null
+          Timestamp?: string | null
+          "UI/UX Design (Figma, Adobe XD)"?: number | null
+        }
+        Relationships: []
+      }
       hackathon_events: {
         Row: {
           application_deadline: string | null
@@ -59,97 +113,58 @@ export type Database = {
           age: number | null
           bio: string | null
           created_at: string
+          devpost_url: string | null
           education: string | null
+          education_details: Json | null
+          github_projects: Json | null
+          github_url: string | null
           id: string
           interests: string[] | null
+          linkedin_url: string | null
           location: string | null
           name: string | null
           occupation: string | null
           photos: string[] | null
           updated_at: string
+          work_experience: Json | null
         }
         Insert: {
           age?: number | null
           bio?: string | null
           created_at?: string
+          devpost_url?: string | null
           education?: string | null
+          education_details?: Json | null
+          github_projects?: Json | null
+          github_url?: string | null
           id: string
           interests?: string[] | null
+          linkedin_url?: string | null
           location?: string | null
           name?: string | null
           occupation?: string | null
           photos?: string[] | null
           updated_at?: string
+          work_experience?: Json | null
         }
         Update: {
           age?: number | null
           bio?: string | null
           created_at?: string
+          devpost_url?: string | null
           education?: string | null
+          education_details?: Json | null
+          github_projects?: Json | null
+          github_url?: string | null
           id?: string
           interests?: string[] | null
+          linkedin_url?: string | null
           location?: string | null
           name?: string | null
           occupation?: string | null
           photos?: string[] | null
           updated_at?: string
-        }
-        Relationships: []
-      }
-      users_data: {
-        Row: {
-          "Backend Dev": number | null
-          "Check the skills you're comfortable with:": string | null
-          Cybersecurity: number | null
-          "Enter name:": string
-          "Enter the major you're pursuing:": string | null
-          "Enter the school/university you're attending:": string | null
-          "Enter your year:": string | null
-          "Frontend Dev": number | null
-          "Hardware / Arduino / Raspberry Pi": number | null
-          "Pitching / Public Speaking": number | null
-          "Project Management (Notion, Trello, etc.)": number | null
-          "Provide a link to your Devpost profile:": string | null
-          "Provide a link to your GitHub:": string | null
-          "Provide a link to your LinkedIn profile:": string | null
-          Timestamp: string | null
-          "UI/UX Design (Figma, Adobe XD)": number | null
-        }
-        Insert: {
-          "Backend Dev"?: number | null
-          "Check the skills you're comfortable with:"?: string | null
-          Cybersecurity?: number | null
-          "Enter name:": string
-          "Enter the major you're pursuing:"?: string | null
-          "Enter the school/university you're attending:"?: string | null
-          "Enter your year:"?: string | null
-          "Frontend Dev"?: number | null
-          "Hardware / Arduino / Raspberry Pi"?: number | null
-          "Pitching / Public Speaking"?: number | null
-          "Project Management (Notion, Trello, etc.)"?: number | null
-          "Provide a link to your Devpost profile:"?: string | null
-          "Provide a link to your GitHub:"?: string | null
-          "Provide a link to your LinkedIn profile:"?: string | null
-          Timestamp?: string | null
-          "UI/UX Design (Figma, Adobe XD)"?: number | null
-        }
-        Update: {
-          "Backend Dev"?: number | null
-          "Check the skills you're comfortable with:"?: string | null
-          Cybersecurity?: number | null
-          "Enter name:"?: string
-          "Enter the major you're pursuing:"?: string | null
-          "Enter the school/university you're attending:"?: string | null
-          "Enter your year:"?: string | null
-          "Frontend Dev"?: number | null
-          "Hardware / Arduino / Raspberry Pi"?: number | null
-          "Pitching / Public Speaking"?: number | null
-          "Project Management (Notion, Trello, etc.)"?: number | null
-          "Provide a link to your Devpost profile:"?: string | null
-          "Provide a link to your GitHub:"?: string | null
-          "Provide a link to your LinkedIn profile:"?: string | null
-          Timestamp?: string | null
-          "UI/UX Design (Figma, Adobe XD)"?: number | null
+          work_experience?: Json | null
         }
         Relationships: []
       }

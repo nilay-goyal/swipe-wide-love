@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from 'react';
-import { Edit, Save, Camera, MapPin, LogOut } from 'lucide-react';
+import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface UserProfile {
   id: string;
@@ -14,6 +16,12 @@ interface UserProfile {
   interests: string[] | null;
   occupation: string | null;
   education: string | null;
+  github_url: string | null;
+  devpost_url: string | null;
+  linkedin_url: string | null;
+  github_projects: any[] | null;
+  work_experience: any[] | null;
+  education_details: any[] | null;
 }
 
 interface ProfilePageProps {
@@ -25,6 +33,8 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   const { user, signOut } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [scrapingGithub, setScrapingGithub] = useState(false);
+  const [scrapingLinkedin, setScrapingLinkedin] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
     name: '',
@@ -34,7 +44,13 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     photos: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'],
     interests: [],
     occupation: '',
-    education: ''
+    education: '',
+    github_url: null,
+    devpost_url: null,
+    linkedin_url: null,
+    github_projects: [],
+    work_experience: [],
+    education_details: []
   });
 
   const [editedProfile, setEditedProfile] = useState<UserProfile>(profile);
@@ -68,7 +84,13 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           photos: data.photos || ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'],
           interests: data.interests || [],
           occupation: data.occupation || '',
-          education: data.education || ''
+          education: data.education || '',
+          github_url: data.github_url,
+          devpost_url: data.devpost_url,
+          linkedin_url: data.linkedin_url,
+          github_projects: data.github_projects || [],
+          work_experience: data.work_experience || [],
+          education_details: data.education_details || []
         };
         setProfile(profileData);
         setEditedProfile(profileData);
@@ -81,6 +103,46 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const scrapeGithubData = async (githubUrl: string) => {
+    if (!githubUrl) return;
+    
+    setScrapingGithub(true);
+    try {
+      const username = githubUrl.split('/').pop();
+      const response = await fetch(`https://api.github.com/users/${username}/repos`);
+      
+      if (response.ok) {
+        const repos = await response.json();
+        const projects = repos.slice(0, 6).map((repo: any) => ({
+          name: repo.name,
+          description: repo.description,
+          language: repo.language,
+          stars: repo.stargazers_count,
+          url: repo.html_url,
+          updated_at: repo.updated_at
+        }));
+        
+        setEditedProfile(prev => ({
+          ...prev,
+          github_projects: projects
+        }));
+        
+        toast({
+          title: "GitHub data imported! 🚀",
+          description: `Found ${projects.length} repositories`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to import GitHub data",
+        description: "Please check the URL and try again",
+        variant: "destructive",
+      });
+    } finally {
+      setScrapingGithub(false);
     }
   };
 
@@ -108,6 +170,12 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           interests: editedProfile.interests,
           occupation: editedProfile.occupation,
           education: editedProfile.education,
+          github_url: editedProfile.github_url,
+          devpost_url: editedProfile.devpost_url,
+          linkedin_url: editedProfile.linkedin_url,
+          github_projects: editedProfile.github_projects,
+          work_experience: editedProfile.work_experience,
+          education_details: editedProfile.education_details,
           updated_at: new Date().toISOString()
         });
 
@@ -205,34 +273,70 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           <div className="flex h-auto">
             <div className="w-2/5 p-8">
               <div className="space-y-4">
-                <div className="relative group">
-                  <img
-                    src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'}
-                    alt="Profile main"
-                    className="w-full h-64 object-cover rounded-2xl"
-                  />
+                <div className="relative group flex justify-center">
+                  <Avatar className="w-48 h-48">
+                    <AvatarImage
+                      src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'}
+                      alt="Profile main"
+                      className="object-cover"
+                    />
+                    <AvatarFallback className="text-2xl">
+                      {profile.name?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
                   {isEditing && (
-                    <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                       <Camera className="w-8 h-8 text-white" />
                     </div>
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  {(profile.photos?.slice(1, 3) || []).map((photo, index) => (
+                <div className="grid grid-cols-3 gap-2 justify-center">
+                  {(profile.photos?.slice(1, 4) || []).map((photo, index) => (
                     <div key={index + 1} className="relative group">
-                      <img
-                        src={photo}
-                        alt={`Profile ${index + 2}`}
-                        className="w-full h-32 object-cover rounded-xl"
-                      />
+                      <Avatar className="w-16 h-16">
+                        <AvatarImage
+                          src={photo}
+                          alt={`Profile ${index + 2}`}
+                          className="object-cover"
+                        />
+                        <AvatarFallback>{index + 2}</AvatarFallback>
+                      </Avatar>
                       {isEditing && (
-                        <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                          <Camera className="w-6 h-6 text-white" />
+                        <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                          <Camera className="w-4 h-4 text-white" />
                         </div>
                       )}
                     </div>
                   ))}
+                </div>
+
+                {/* Social Links */}
+                <div className="space-y-3 pt-4">
+                  {profile.github_url && (
+                    <a href={profile.github_url} target="_blank" rel="noopener noreferrer" 
+                       className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors">
+                      <Github className="w-4 h-4" />
+                      <span>GitHub</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                  {profile.devpost_url && (
+                    <a href={profile.devpost_url} target="_blank" rel="noopener noreferrer"
+                       className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors">
+                      <ExternalLink className="w-4 h-4" />
+                      <span>DevPost</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                  {profile.linkedin_url && (
+                    <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer"
+                       className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors">
+                      <Linkedin className="w-4 h-4" />
+                      <span>LinkedIn</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
@@ -320,6 +424,63 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                   )}
                 </div>
 
+                {/* Social Media Links */}
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">GitHub URL</label>
+                    {isEditing ? (
+                      <div className="flex space-x-2">
+                        <input
+                          type="url"
+                          value={editedProfile.github_url || ''}
+                          onChange={(e) => setEditedProfile({...editedProfile, github_url: e.target.value})}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          placeholder="https://github.com/username"
+                        />
+                        <button
+                          onClick={() => scrapeGithubData(editedProfile.github_url || '')}
+                          disabled={!editedProfile.github_url || scrapingGithub}
+                          className="px-3 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                        >
+                          {scrapingGithub ? '...' : 'Import'}
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-gray-800">{profile.github_url || 'Not specified'}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">DevPost URL</label>
+                    {isEditing ? (
+                      <input
+                        type="url"
+                        value={editedProfile.devpost_url || ''}
+                        onChange={(e) => setEditedProfile({...editedProfile, devpost_url: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder="https://devpost.com/username"
+                      />
+                    ) : (
+                      <p className="text-gray-800">{profile.devpost_url || 'Not specified'}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">LinkedIn URL</label>
+                    {isEditing ? (
+                      <input
+                        type="url"
+                        value={editedProfile.linkedin_url || ''}
+                        onChange={(e) => setEditedProfile({...editedProfile, linkedin_url: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder="https://linkedin.com/in/username"
+                      />
+                    ) : (
+                      <p className="text-gray-800">{profile.linkedin_url || 'Not specified'}</p>
+                    )}
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
                   {isEditing ? (
@@ -352,6 +513,33 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                     )}
                   </div>
                 </div>
+
+                {/* GitHub Projects */}
+                {profile.github_projects && profile.github_projects.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">GitHub Projects</label>
+                    <div className="space-y-3">
+                      {profile.github_projects.slice(0, 3).map((project: any, index: number) => (
+                        <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-800">{project.name}</h4>
+                              <p className="text-sm text-gray-600 mt-1">{project.description}</p>
+                              <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                                {project.language && <span>{project.language}</span>}
+                                <span>⭐ {project.stars}</span>
+                              </div>
+                            </div>
+                            <a href={project.url} target="_blank" rel="noopener noreferrer" 
+                               className="text-pink-600 hover:text-pink-700">
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

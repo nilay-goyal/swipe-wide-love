@@ -11,6 +11,10 @@ interface Profile {
   distance: number;
   photos: string[];
   interests: string[];
+  github_url?: string;
+  devpost_url?: string;
+  linkedin_url?: string;
+  github_projects?: any[];
 }
 
 const DiscoverPage = () => {
@@ -29,7 +33,23 @@ const DiscoverPage = () => {
         "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=500&h=600&fit=crop&crop=face",
         "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&h=600&fit=crop&crop=face"
       ],
-      interests: ["Travel", "Photography", "Yoga", "Books"]
+      interests: ["Travel", "Photography", "Yoga", "Books"],
+      github_url: "https://github.com/emma-dev",
+      linkedin_url: "https://linkedin.com/in/emma-smith",
+      github_projects: [
+        {
+          name: "travel-planner",
+          description: "A React app for planning adventures",
+          language: "JavaScript",
+          stars: 42
+        },
+        {
+          name: "photo-gallery",
+          description: "Beautiful photo showcase platform",
+          language: "TypeScript",
+          stars: 28
+        }
+      ]
     },
     {
       id: 2,
@@ -41,7 +61,24 @@ const DiscoverPage = () => {
         "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=600&fit=crop&crop=face",
         "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&h=600&fit=crop&crop=face"
       ],
-      interests: ["Cooking", "Hiking", "Music", "Movies"]
+      interests: ["Cooking", "Hiking", "Music", "Movies"],
+      github_url: "https://github.com/alex-chef",
+      devpost_url: "https://devpost.com/alex-chef",
+      linkedin_url: "https://linkedin.com/in/alex-johnson",
+      github_projects: [
+        {
+          name: "recipe-finder",
+          description: "AI-powered recipe recommendation app",
+          language: "Python",
+          stars: 67
+        },
+        {
+          name: "hiking-tracker",
+          description: "Track your mountain adventures",
+          language: "React Native",
+          stars: 35
+        }
+      ]
     },
     {
       id: 3,
@@ -53,7 +90,23 @@ const DiscoverPage = () => {
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&h=600&fit=crop&crop=face",
         "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&h=600&fit=crop&crop=face"
       ],
-      interests: ["Art", "Dancing", "Music", "Fashion"]
+      interests: ["Art", "Dancing", "Music", "Fashion"],
+      github_url: "https://github.com/sofia-art",
+      devpost_url: "https://devpost.com/sofia-creates",
+      github_projects: [
+        {
+          name: "digital-canvas",
+          description: "Web-based digital art platform",
+          language: "Vue.js",
+          stars: 89
+        },
+        {
+          name: "dance-choreographer",
+          description: "App for creating dance routines",
+          language: "Flutter",
+          stars: 51
+        }
+      ]
     }
   ];
 

@@ -1,6 +1,7 @@
 
 import { useState, useRef } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, Github, Linkedin, ExternalLink } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface Profile {
   id: number;
@@ -10,6 +11,10 @@ interface Profile {
   distance: number;
   photos: string[];
   interests: string[];
+  github_url?: string;
+  devpost_url?: string;
+  linkedin_url?: string;
+  github_projects?: any[];
 }
 
 interface ProfileCardProps {
@@ -135,6 +140,16 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
               →
             </button>
 
+            {/* Additional photos as circular avatars */}
+            <div className="absolute bottom-4 left-4 flex space-x-2">
+              {profile.photos.slice(1, 4).map((photo, index) => (
+                <Avatar key={index + 1} className="w-12 h-12 border-2 border-white">
+                  <AvatarImage src={photo} alt={`${profile.name} ${index + 2}`} />
+                  <AvatarFallback>{index + 2}</AvatarFallback>
+                </Avatar>
+              ))}
+            </div>
+
             {isDragging && (
               <>
                 {dragOffset.y < -50 && (
@@ -180,6 +195,46 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
                   </span>
                 ))}
               </div>
+
+              {/* Social Links */}
+              <div className="flex space-x-4 mb-4">
+                {profile.github_url && (
+                  <a href={profile.github_url} target="_blank" rel="noopener noreferrer" 
+                     className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 transition-colors">
+                    <Github className="w-4 h-4" />
+                    <span className="text-sm">GitHub</span>
+                  </a>
+                )}
+                {profile.devpost_url && (
+                  <a href={profile.devpost_url} target="_blank" rel="noopener noreferrer"
+                     className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 transition-colors">
+                    <ExternalLink className="w-4 h-4" />
+                    <span className="text-sm">DevPost</span>
+                  </a>
+                )}
+                {profile.linkedin_url && (
+                  <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer"
+                     className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 transition-colors">
+                    <Linkedin className="w-4 h-4" />
+                    <span className="text-sm">LinkedIn</span>
+                  </a>
+                )}
+              </div>
+
+              {/* GitHub Projects Preview */}
+              {profile.github_projects && profile.github_projects.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Recent Projects</h4>
+                  <div className="space-y-2">
+                    {profile.github_projects.slice(0, 2).map((project: any, index: number) => (
+                      <div key={index} className="text-sm">
+                        <div className="font-medium text-gray-800">{project.name}</div>
+                        <div className="text-gray-600 text-xs">{project.description}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="text-center text-gray-500">
