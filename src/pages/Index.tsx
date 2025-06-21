@@ -1,12 +1,43 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from 'react';
+import Navigation from '../components/Navigation';
+import DiscoverPage from '../components/DiscoverPage';
+import EventsPage from '../components/EventsPage';
+import PremiumPage from '../components/PremiumPage';
+import MessagesPage from '../components/MessagesPage';
+import ProfilePage from '../components/ProfilePage';
 
 const Index = () => {
+  const [currentPage, setCurrentPage] = useState('discover');
+
+  const renderCurrentPage = () => {
+    switch (currentPage) {
+      case 'discover':
+        return <DiscoverPage />;
+      case 'events':
+        return <EventsPage />;
+      case 'premium':
+        return <PremiumPage />;
+      case 'messages':
+        return <MessagesPage />;
+      case 'profile':
+        return <ProfilePage />;
+      default:
+        return <DiscoverPage />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-50">
+      <Navigation 
+        currentPage={currentPage} 
+        onPageChange={setCurrentPage}
+        messageCount={3}
+      />
+      
+      <main className="container mx-auto px-4">
+        {renderCurrentPage()}
+      </main>
     </div>
   );
 };
