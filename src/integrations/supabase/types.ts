@@ -9,33 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      data_test: {
+      data: {
         Row: {
-          github: string | null
-          id: string
-          linkedin: string | null
-          name: string | null
-          school: string | null
-          skills: string | null
-          year: string | null
+          "Backend Dev": number | null
+          "Check the skills you're comfortable with:": string | null
+          Cybersecurity: number | null
+          "Enter name:": string
+          "Enter the major you're pursuing:": string | null
+          "Enter the school/university you're attending:": string | null
+          "Enter your year:": string | null
+          "Frontend Dev": number | null
+          "Hardware / Arduino / Raspberry Pi": number | null
+          "Pitching / Public Speaking": number | null
+          "Project Management (Notion, Trello, etc.)": number | null
+          "Provide a link to your Devpost profile:": string | null
+          "Provide a link to your GitHub:": string | null
+          Timestamp: string | null
+          "UI/UX Design (Figma, Adobe XD)": number | null
         }
         Insert: {
-          github?: string | null
-          id: string
-          linkedin?: string | null
-          name?: string | null
-          school?: string | null
-          skills?: string | null
-          year?: string | null
+          "Backend Dev"?: number | null
+          "Check the skills you're comfortable with:"?: string | null
+          Cybersecurity?: number | null
+          "Enter name:": string
+          "Enter the major you're pursuing:"?: string | null
+          "Enter the school/university you're attending:"?: string | null
+          "Enter your year:"?: string | null
+          "Frontend Dev"?: number | null
+          "Hardware / Arduino / Raspberry Pi"?: number | null
+          "Pitching / Public Speaking"?: number | null
+          "Project Management (Notion, Trello, etc.)"?: number | null
+          "Provide a link to your Devpost profile:"?: string | null
+          "Provide a link to your GitHub:"?: string | null
+          Timestamp?: string | null
+          "UI/UX Design (Figma, Adobe XD)"?: number | null
         }
         Update: {
-          github?: string | null
-          id?: string
-          linkedin?: string | null
-          name?: string | null
-          school?: string | null
-          skills?: string | null
-          year?: string | null
+          "Backend Dev"?: number | null
+          "Check the skills you're comfortable with:"?: string | null
+          Cybersecurity?: number | null
+          "Enter name:"?: string
+          "Enter the major you're pursuing:"?: string | null
+          "Enter the school/university you're attending:"?: string | null
+          "Enter your year:"?: string | null
+          "Frontend Dev"?: number | null
+          "Hardware / Arduino / Raspberry Pi"?: number | null
+          "Pitching / Public Speaking"?: number | null
+          "Project Management (Notion, Trello, etc.)"?: number | null
+          "Provide a link to your Devpost profile:"?: string | null
+          "Provide a link to your GitHub:"?: string | null
+          Timestamp?: string | null
+          "UI/UX Design (Figma, Adobe XD)"?: number | null
         }
         Relationships: []
       }
@@ -89,7 +113,6 @@ export type Database = {
           age: number | null
           bio: string | null
           created_at: string
-          devpost_projects: Json | null
           devpost_url: string | null
           education: string | null
           education_details: Json | null
@@ -109,7 +132,6 @@ export type Database = {
           age?: number | null
           bio?: string | null
           created_at?: string
-          devpost_projects?: Json | null
           devpost_url?: string | null
           education?: string | null
           education_details?: Json | null
@@ -129,7 +151,6 @@ export type Database = {
           age?: number | null
           bio?: string | null
           created_at?: string
-          devpost_projects?: Json | null
           devpost_url?: string | null
           education?: string | null
           education_details?: Json | null
@@ -147,54 +168,12 @@ export type Database = {
         }
         Relationships: []
       }
-      user_hackathons: {
-        Row: {
-          created_at: string
-          hackathon_event_id: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          hackathon_event_id: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          hackathon_event_id?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_hackathons_hackathon_event_id_fkey"
-            columns: ["hackathon_event_id"]
-            isOneToOne: false
-            referencedRelation: "hackathon_events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_user_hackathons: {
-        Args: { user_uuid: string }
-        Returns: {
-          hackathon_event_id: string
-        }[]
-      }
-      join_hackathon: {
-        Args: { user_uuid: string; event_uuid: string }
-        Returns: undefined
-      }
-      leave_hackathon: {
-        Args: { user_uuid: string; event_uuid: string }
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

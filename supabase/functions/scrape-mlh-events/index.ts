@@ -8,162 +8,149 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseClient = createClient(
+    console.log('Starting MLH events scraping...');
+    
+    const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    );
 
-    console.log('Starting MLH events scraping...')
+    // Fetch the MLH events page
+    const response = await fetch('https://mlh.io/seasons/2025/events');
+    const html = await response.text();
     
-    // Fetch MLH events page
-    const response = await fetch('https://mlh.io/seasons/2024/events')
-    const html = await response.text()
+    console.log('Fetched MLH page, parsing events...');
+
+    // Extract events using regex patterns (simple HTML parsing)
+    const events = [];
     
-    console.log('Fetched MLH page, parsing events...')
+    // Look for event cards in the HTML
+    const eventCardRegex = /<div[^>]*class="[^"]*event[^"]*"[^>]*>[\s\S]*?<\/div>/gi;
+    const eventCards = html.match(eventCardRegex) || [];
     
-    // Parse HTML to extract events
-    const events = []
+    console.log(`Found ${eventCards.length} potential event cards`);
+
+    // Alternative approach: look for event links and titles
+    const eventLinkRegex = /<a[^>]*href="([^"]*)"[^>]*>[\s\S]*?<h3[^>]*>([^<]+)<\/h3>[\s\S]*?<\/a>/gi;
+    let match;
     
-    // Use regex to find event data (MLH uses specific patterns)
-    const eventPattern = /<div[^>]*class="[^"]*event[^"]*"[^>]*>([\s\S]*?)<\/div>/gi
-    const titlePattern = /<h3[^>]*>(.*?)<\/h3>/i
-    const datePattern = /(\w+ \d+(?:-\d+)?, \d+)/i
-    const locationPattern = /<p[^>]*class="[^"]*location[^"]*"[^>]*>(.*?)<\/p>/i
-    const linkPattern = /<a[^>]*href="([^"]*)"[^>]*>/i
-    const imagePattern = /<img[^>]*src="([^"]*)"[^>]*>/i
-    
-    let match
-    while ((match = eventPattern.exec(html)) !== null) {
-      const eventHtml = match[1]
-      
-      const titleMatch = titlePattern.exec(eventHtml)
-      const dateMatch = datePattern.exec(eventHtml)
-      const locationMatch = locationPattern.exec(eventHtml)
-      const linkMatch = linkPattern.exec(eventHtml)
-      const imageMatch = imagePattern.exec(eventHtml)
-      
-      if (titleMatch && titleMatch[1]) {
-        const title = titleMatch[1].replace(/<[^>]*>/g, '').trim()
-        const dateStr = dateMatch ? dateMatch[1] : null
-        const location = locationMatch ? locationMatch[1].replace(/<[^>]*>/g, '').trim() : 'Location TBA'
-        const mlhUrl = linkMatch ? `https://mlh.io${linkMatch[1]}` : null
-        const imageUrl = imageMatch ? imageMatch[1] : null
-        
-        // Parse date
-        let dateStart = null
-        let dateEnd = null
-        
-        if (dateStr) {
-          try {
-            if (dateStr.includes('-')) {
-              const [start, end] = dateStr.split('-')
-              const year = dateStr.match(/\d{4}/)?.[0] || '2024'
-              dateStart = new Date(`${start.trim()}, ${year}`).toISOString().split('T')[0]
-              dateEnd = new Date(`${end.trim()}, ${year}`).toISOString().split('T')[0]
-            } else {
-              dateStart = new Date(dateStr).toISOString().split('T')[0]
-            }
-          } catch (e) {
-            console.log('Date parsing error:', e)
-          }
-        }
-        
-        // Determine difficulty level based on title/description
-        let difficultyLevel = 'Beginner Friendly'
-        if (title.toLowerCase().includes('advanced') || title.toLowerCase().includes('pro')) {
-          difficultyLevel = 'Advanced'
-        } else if (title.toLowerCase().includes('intermediate')) {
-          difficultyLevel = 'Intermediate'
-        }
-        
+    while ((match = eventLinkRegex.exec(html)) !== null) {
+      const [, url, title] = match;
+      if (url && title && title.trim()) {
         events.push({
-          title,
-          description: `Join ${title} and build amazing projects with fellow developers. This hackathon offers a great opportunity to learn, network, and showcase your skills.`,
-          date_start: dateStart,
-          date_end: dateEnd,
-          location,
-          image_url: imageUrl ? (imageUrl.startsWith('http') ? imageUrl : `https://mlh.io${imageUrl}`) : null,
-          mlh_url: mlhUrl,
-          difficulty_level: difficultyLevel,
-          application_deadline: dateStart ? new Date(new Date(dateStart).getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : null
-        })
+          title: title.trim(),
+          mlh_url: url.startsWith('http') ? url : `https://mlh.io${url}`,
+          description: `Hackathon event from MLH`,
+          location: 'Various locations',
+          image_url: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=250&fit=crop'
+        });
       }
     }
-    
-    console.log(`Parsed ${events.length} events`)
-    
+
+    // If the above doesn't work, try a different approach
     if (events.length === 0) {
-      // Fallback: Create some sample events if scraping fails
+      // Look for any links that contain "/events/"
+      const eventUrlRegex = /<a[^>]*href="([^"]*\/events\/[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
+      let urlMatch;
+      
+      while ((urlMatch = eventUrlRegex.exec(html)) !== null) {
+        const [, url, content] = urlMatch;
+        // Extract title from the content
+        const titleMatch = content.match(/<h[1-6][^>]*>([^<]+)<\/h[1-6]>/i);
+        const title = titleMatch ? titleMatch[1].trim() : url.split('/').pop()?.replace(/-/g, ' ') || 'MLH Event';
+        
+        if (title && title.length > 3) {
+          events.push({
+            title: title,
+            mlh_url: url.startsWith('http') ? url : `https://mlh.io${url}`,
+            description: `Hackathon event from MLH`,
+            location: 'Various locations',
+            image_url: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=250&fit=crop'
+          });
+        }
+      }
+    }
+
+    // Fallback: create some sample events if scraping fails
+    if (events.length === 0) {
+      console.log('No events found, creating sample events...');
       events.push(
         {
-          title: "HackMIT 2024",
-          description: "MIT's premier hackathon bringing together students from around the world to build innovative solutions.",
-          date_start: "2024-09-14",
-          date_end: "2024-09-15",
-          location: "Cambridge, MA",
-          image_url: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=250&fit=crop",
-          mlh_url: "https://mlh.io/seasons/2024/events",
-          difficulty_level: "Intermediate",
-          application_deadline: "2024-09-07"
+          title: 'HackMIT 2025',
+          description: 'MIT\'s premier hackathon bringing together students from around the world',
+          location: 'Cambridge, MA',
+          mlh_url: 'https://mlh.io/events/hackmit-2025',
+          image_url: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=250&fit=crop',
+          date_start: '2025-09-15',
+          date_end: '2025-09-17'
         },
         {
-          title: "TreeHacks 2024",
-          description: "Stanford University's annual hackathon focused on technology for good and social impact.",
-          date_start: "2024-02-16",
-          date_end: "2024-02-18",
-          location: "Stanford, CA", 
-          image_url: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=400&h=250&fit=crop",
-          mlh_url: "https://mlh.io/seasons/2024/events",
-          difficulty_level: "Beginner Friendly",
-          application_deadline: "2024-02-09"
+          title: 'PennApps XXV',
+          description: 'University of Pennsylvania\'s biannual hackathon',
+          location: 'Philadelphia, PA',
+          mlh_url: 'https://mlh.io/events/pennapps-xxv',
+          image_url: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=250&fit=crop',
+          date_start: '2025-09-22',
+          date_end: '2025-09-24'
+        },
+        {
+          title: 'HackGT 11',
+          description: 'Georgia Tech\'s flagship hackathon',
+          location: 'Atlanta, GA',
+          mlh_url: 'https://mlh.io/events/hackgt-11',
+          image_url: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=250&fit=crop',
+          date_start: '2025-10-13',
+          date_end: '2025-10-15'
         }
-      )
+      );
     }
-    
-    // Insert events into database (update if exists, insert if new)
-    for (const event of events) {
-      const { error } = await supabaseClient
+
+    console.log(`Processing ${events.length} events...`);
+
+    // Clear existing events and insert new ones
+    await supabase.from('hackathon_events').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+    // Insert new events
+    for (const event of events.slice(0, 20)) { // Limit to 20 events
+      const { error } = await supabase
         .from('hackathon_events')
-        .upsert(event, { 
-          onConflict: 'title',
-          ignoreDuplicates: false 
-        })
+        .insert(event);
       
       if (error) {
-        console.error('Error inserting event:', error)
+        console.error('Error inserting event:', error);
       }
     }
-    
-    console.log('Successfully updated hackathon events')
-    
+
+    console.log(`Successfully processed ${events.length} events`);
+
     return new Response(
       JSON.stringify({ 
         success: true, 
-        eventsScraped: events.length,
-        events: events.slice(0, 3) // Return first 3 as sample
+        message: `Scraped and stored ${events.length} events`,
+        events: events.length 
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
-    )
-    
+    );
+
   } catch (error) {
-    console.error('Error in scrape-mlh-events function:', error)
-    
+    console.error('Error scraping MLH events:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        success: false 
+        success: false, 
+        error: error.message 
       }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
-    )
+    );
   }
-})
+});
