@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import ProfileDisplay from './discover/ProfileDisplay';
 import SwipeButtons from './discover/SwipeButtons';
@@ -191,7 +192,10 @@ const DiscoverPage = () => {
         </p>
       </div>
       
-      <ProfileDisplay profile={profiles[currentIndex]} />
+      <ProfileDisplay 
+        profile={profiles[currentIndex]} 
+        onSwipe={handleSwipe}
+      />
       <SwipeButtons 
         onPass={() => handleSwipe('down')}
         onLike={() => handleSwipe('up')}
