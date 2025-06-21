@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      hackathon_events: {
+        Row: {
+          application_deadline: string | null
+          created_at: string
+          date_end: string | null
+          date_start: string | null
+          description: string | null
+          difficulty_level: string | null
+          id: string
+          image_url: string | null
+          location: string | null
+          mlh_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          application_deadline?: string | null
+          created_at?: string
+          date_end?: string | null
+          date_start?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          mlh_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          application_deadline?: string | null
+          created_at?: string
+          date_end?: string | null
+          date_start?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          mlh_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null
@@ -48,6 +93,63 @@ export type Database = {
           occupation?: string | null
           photos?: string[] | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      users_real: {
+        Row: {
+          "Backend Dev": number | null
+          "Check the skills you're comfortable with:": string | null
+          Cybersecurity: number | null
+          "Enter name:": string | null
+          "Enter the major you're pursuing:": string | null
+          "Enter the school/university you're attending:": string | null
+          "Enter your year:": string | null
+          "Frontend Dev": number | null
+          "Hardware / Arduino / Raspberry Pi": number | null
+          "Pitching / Public Speaking": number | null
+          "Project Management (Notion, Trello, etc.)": number | null
+          "Provide a link to your Devpost profile:": string | null
+          "Provide a link to your GitHub:": string | null
+          "Provide a link to your LinkedIn profile:": string | null
+          Timestamp: string | null
+          "UI/UX Design (Figma, Adobe XD)": number | null
+        }
+        Insert: {
+          "Backend Dev"?: number | null
+          "Check the skills you're comfortable with:"?: string | null
+          Cybersecurity?: number | null
+          "Enter name:"?: string | null
+          "Enter the major you're pursuing:"?: string | null
+          "Enter the school/university you're attending:"?: string | null
+          "Enter your year:"?: string | null
+          "Frontend Dev"?: number | null
+          "Hardware / Arduino / Raspberry Pi"?: number | null
+          "Pitching / Public Speaking"?: number | null
+          "Project Management (Notion, Trello, etc.)"?: number | null
+          "Provide a link to your Devpost profile:"?: string | null
+          "Provide a link to your GitHub:"?: string | null
+          "Provide a link to your LinkedIn profile:"?: string | null
+          Timestamp?: string | null
+          "UI/UX Design (Figma, Adobe XD)"?: number | null
+        }
+        Update: {
+          "Backend Dev"?: number | null
+          "Check the skills you're comfortable with:"?: string | null
+          Cybersecurity?: number | null
+          "Enter name:"?: string | null
+          "Enter the major you're pursuing:"?: string | null
+          "Enter the school/university you're attending:"?: string | null
+          "Enter your year:"?: string | null
+          "Frontend Dev"?: number | null
+          "Hardware / Arduino / Raspberry Pi"?: number | null
+          "Pitching / Public Speaking"?: number | null
+          "Project Management (Notion, Trello, etc.)"?: number | null
+          "Provide a link to your Devpost profile:"?: string | null
+          "Provide a link to your GitHub:"?: string | null
+          "Provide a link to your LinkedIn profile:"?: string | null
+          Timestamp?: string | null
+          "UI/UX Design (Figma, Adobe XD)"?: number | null
         }
         Relationships: []
       }
