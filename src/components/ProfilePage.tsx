@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { MapPin, Briefcase, GraduationCap, Code, Edit3, Save, X, Plus, ExternalLink, Github, Linkedin } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -16,6 +17,8 @@ interface ProfileData {
   devpost_url: string | null;
   work_experience: WorkExperience[] | null;
   education_details: Education[] | null;
+  github_projects: GitHubProject[] | null;
+  devpost_projects: DevpostProject[] | null;
 }
 
 interface WorkExperience {
@@ -33,6 +36,21 @@ interface Education {
   degree: string;
   year: string;
   isImported?: boolean;
+}
+
+interface GitHubProject {
+  id: number;
+  name: string;
+  description: string;
+  url: string;
+  language: string;
+}
+
+interface DevpostProject {
+  id: number;
+  title: string;
+  description: string;
+  url: string;
 }
 
 interface ProfilePageProps {
@@ -54,6 +72,8 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     devpost_url: null,
     work_experience: null,
     education_details: null,
+    github_projects: null,
+    devpost_projects: null,
   });
   const [isEditing, setIsEditing] = useState(false);
   const [newWorkExperience, setNewWorkExperience] = useState<WorkExperience>({
@@ -100,6 +120,8 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               devpost_url: null,
               work_experience: null,
               education_details: null,
+              github_projects: null,
+              devpost_projects: null,
             });
             setGithubUrl(data?.github_url || '');
             setLinkedinUrl(data?.linkedin_url || '');
@@ -143,6 +165,8 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           devpost_url: devpostUrl,
           work_experience: profileData.work_experience,
           education_details: profileData.education_details,
+          github_projects: profileData.github_projects,
+          devpost_projects: profileData.devpost_projects,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'id' });
 
@@ -164,6 +188,15 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   };
 
   const handleAddWorkExperience = () => {
+    if (!newWorkExperience.title || !newWorkExperience.company) {
+      toast({
+        title: "Error",
+        description: "Please fill in title and company fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setProfileData(prev => ({
       ...prev,
       work_experience: [...(prev.work_experience || []), newWorkExperience],
@@ -178,6 +211,15 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   };
 
   const handleAddEducation = () => {
+    if (!newEducation.school || !newEducation.degree) {
+      toast({
+        title: "Error",
+        description: "Please fill in school and degree fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setProfileData(prev => ({
       ...prev,
       education_details: [...(prev.education_details || []), newEducation],
@@ -216,169 +258,31 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
     setImportingLinkedIn(true);
     try {
-      // Enhanced LinkedIn scraping with multiple selectors and fallbacks
-      const response = await fetch(`https://api.allorigins.me/get?url=${encodeURIComponent(linkedinUrl)}`);
-      const data = await response.json();
-      const html = data.contents;
-      
-      if (!html) {
-        throw new Error('Unable to fetch LinkedIn profile');
-      }
-
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-
-      // Extract work experience with multiple selector strategies
-      const workExperience: WorkExperience[] = [];
-      
-      // Try multiple LinkedIn selectors for experience
-      const experienceSelectors = [
-        '.experience-item',
-        '.pv-entity__summary-info',
-        '.pv-profile-section__card-item',
-        '[data-field="experience"]',
-        '.experience-section li',
-        '.pv-experience-section__contents li'
-      ];
-
-      let experienceElements: NodeListOf<Element> | null = null;
-      for (const selector of experienceSelectors) {
-        experienceElements = doc.querySelectorAll(selector);
-        if (experienceElements.length > 0) break;
-      }
-
-      if (experienceElements && experienceElements.length > 0) {
-        experienceElements.forEach((exp, index) => {
-          const titleElement = exp.querySelector('.pv-entity__summary-info-v2 h3, .t-16, .pv-entity__position-group-pager h3, h4');
-          const companyElement = exp.querySelector('.pv-entity__secondary-title, .t-14, .pv-entity__company-summary-info h4');
-          const dateElement = exp.querySelector('.pv-entity__date-range, .t-12, .pv-entity__bullet-item-v2');
-          const descElement = exp.querySelector('.pv-entity__description, .pv-entity__extra-details');
-
-          const title = titleElement?.textContent?.trim() || `Position ${index + 1}`;
-          const company = companyElement?.textContent?.trim() || 'Company';
-          const duration = dateElement?.textContent?.trim() || 'Duration not specified';
-          const description = descElement?.textContent?.trim() || 'No description available';
-
-          workExperience.push({
-            id: Date.now() + index,
-            title,
-            company,
-            duration,
-            description,
-            isImported: true
-          });
-        });
-      }
-
-      // Extract education with multiple selectors
-      const educationData: Education[] = [];
-      const educationSelectors = [
-        '.education-item',
-        '.pv-profile-section.education li',
-        '.pv-education-section li',
-        '[data-field="education"]'
-      ];
-
-      let educationElements: NodeListOf<Element> | null = null;
-      for (const selector of educationSelectors) {
-        educationElements = doc.querySelectorAll(selector);
-        if (educationElements.length > 0) break;
-      }
-
-      if (educationElements && educationElements.length > 0) {
-        educationElements.forEach((edu, index) => {
-          const schoolElement = edu.querySelector('.pv-entity__school-name, h3, .t-16');
-          const degreeElement = edu.querySelector('.pv-entity__degree-name, .pv-entity__fos-1, h4');
-          const dateElement = edu.querySelector('.pv-entity__dates, .t-12');
-
-          const school = schoolElement?.textContent?.trim() || `Institution ${index + 1}`;
-          const degree = degreeElement?.textContent?.trim() || 'Degree';
-          const year = dateElement?.textContent?.trim() || 'Year not specified';
-
-          educationData.push({
-            id: Date.now() + index + 1000,
-            school,
-            degree,
-            year,
-            isImported: true
-          });
-        });
-      }
-
-      // If no data was scraped, add placeholder data to show the import worked
-      if (workExperience.length === 0 && educationData.length === 0) {
-        // Try to extract basic profile info
-        const nameElement = doc.querySelector('.text-heading-xlarge, .pv-text-details__left-panel h1, .top-card-layout__title');
-        const headlineElement = doc.querySelector('.text-body-medium, .pv-text-details__left-panel .text-body-medium, .top-card-layout__headline');
-        
-        const extractedName = nameElement?.textContent?.trim();
-        const extractedHeadline = headlineElement?.textContent?.trim();
-
-        if (extractedName || extractedHeadline) {
-          // Add a work experience entry based on headline
-          if (extractedHeadline) {
-            workExperience.push({
-              id: Date.now(),
-              title: extractedHeadline,
-              company: 'As listed on LinkedIn',
-              duration: 'Current',
-              description: 'Imported from LinkedIn profile',
-              isImported: true
-            });
-          }
-        } else {
-          // Fallback: Add a placeholder to show import attempted
-          workExperience.push({
-            id: Date.now(),
-            title: 'LinkedIn Profile Import',
-            company: 'Data extracted from LinkedIn',
-            duration: 'Please update manually',
-            description: 'LinkedIn profile was accessed but detailed work experience may need manual entry due to privacy settings.',
-            isImported: true
-          });
-        }
-      }
-
-      // Update profile data
-      if (workExperience.length > 0) {
-        setProfileData(prev => ({
-          ...prev,
-          work_experience: [...(prev.work_experience || []), ...workExperience]
-        }));
-      }
-
-      if (educationData.length > 0) {
-        setProfileData(prev => ({
-          ...prev,
-          education_details: [...(prev.education_details || []), ...educationData]
-        }));
-      }
-
-      toast({
-        title: "LinkedIn Import Successful! 🎉",
-        description: `Added ${workExperience.length} work experience entries and ${educationData.length} education entries`,
-      });
-
-    } catch (error) {
-      console.error('LinkedIn import error:', error);
-      // Add a fallback entry to show the import was attempted
-      const fallbackWork: WorkExperience = {
+      // Since LinkedIn blocks scraping, we'll create a placeholder entry that encourages manual update
+      const linkedInEntry: WorkExperience = {
         id: Date.now(),
-        title: 'LinkedIn Profile Import',
+        title: 'Update from LinkedIn',
         company: 'Please update manually',
-        duration: 'Import attempted',
-        description: 'LinkedIn data could not be automatically extracted. Please update this entry with your actual work experience.',
+        duration: 'Current',
+        description: `LinkedIn profile: ${linkedinUrl}. Please update this entry with your actual work experience from LinkedIn.`,
         isImported: true
       };
 
       setProfileData(prev => ({
         ...prev,
-        work_experience: [...(prev.work_experience || []), fallbackWork]
+        work_experience: [...(prev.work_experience || []), linkedInEntry]
       }));
 
       toast({
-        title: "LinkedIn Import Partial",
-        description: "Added placeholder entry. Please update manually due to LinkedIn privacy settings.",
+        title: "LinkedIn Import Note",
+        description: "Added placeholder entry. Please update manually as LinkedIn blocks automated data extraction.",
+      });
+
+    } catch (error) {
+      console.error('LinkedIn import error:', error);
+      toast({
+        title: "LinkedIn Import Failed",
+        description: "LinkedIn blocks automated scraping. Please add your experience manually.",
         variant: "destructive",
       });
     } finally {
@@ -409,7 +313,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
       }
 
       // Extract relevant information from GitHub repositories
-      const githubProjects = repos.map(repo => ({
+      const githubProjects = repos.slice(0, 10).map(repo => ({
         id: repo.id,
         name: repo.name,
         description: repo.description || 'No description available',
@@ -451,52 +355,28 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
     setImportingDevpost(true);
     try {
-      // Fetch Devpost profile page
-      const response = await fetch(`https://api.allorigins.me/get?url=${encodeURIComponent(devpostUrl)}`);
-      const data = await response.json();
-      const html = data.contents;
+      // Create a placeholder entry for Devpost since direct scraping is difficult
+      const devpostProject: DevpostProject = {
+        id: Date.now(),
+        title: 'Devpost Projects',
+        description: `Please visit ${devpostUrl} to see projects. Update this entry manually with your Devpost projects.`,
+        url: devpostUrl,
+      };
 
-      if (!html) {
-        throw new Error('Unable to fetch Devpost profile');
-      }
-
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-
-      // Extract project data from Devpost
-      const projectElements = doc.querySelectorAll('.software-project-card');
-      const devpostProjects = Array.from(projectElements).map((project, index) => {
-        const titleElement = project.querySelector('.title');
-        const descElement = project.querySelector('.project-description');
-        const linkElement = project.querySelector('a.software-project-card');
-
-        const title = titleElement?.textContent?.trim() || `Project ${index + 1}`;
-        const description = descElement?.textContent?.trim() || 'No description available';
-        const url = linkElement?.href || devpostUrl;
-
-        return {
-          id: Date.now() + index,
-          title,
-          description,
-          url,
-        };
-      });
-
-      // Update profile data with Devpost projects
       setProfileData(prev => ({
         ...prev,
-        devpost_projects: devpostProjects,
+        devpost_projects: [...(prev.devpost_projects || []), devpostProject],
       }));
 
       toast({
-        title: "Devpost Import Successful! 🎉",
-        description: `Imported ${devpostProjects.length} Devpost projects`,
+        title: "Devpost Import Note",
+        description: "Added placeholder entry. Please update manually with your actual projects.",
       });
     } catch (error) {
       console.error('Devpost import error:', error);
       toast({
         title: "Devpost Import Failed",
-        description: "Failed to import Devpost projects. Please ensure your profile is public.",
+        description: "Failed to import Devpost projects. Please add your projects manually.",
         variant: "destructive",
       });
     } finally {
@@ -506,7 +386,18 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
   return (
     <div className="container mx-auto mt-8 p-6 bg-white shadow-md rounded-md">
-      <h1 className="text-2xl font-semibold mb-4">Your Profile</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold">Your Profile</h1>
+        {isEditing && (
+          <button
+            onClick={handleSaveProfile}
+            className="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            <Save className="w-4 h-4 mr-2 inline-block" />
+            Save All Changes
+          </button>
+        )}
+      </div>
 
       {isEditing ? (
         <div>
@@ -657,13 +548,16 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                     <h3 className="font-semibold">{item.title}</h3>
                     <p className="text-sm">{item.company} - {item.duration}</p>
                     <p className="text-gray-600">{item.description}</p>
+                    {item.isImported && <span className="text-xs text-blue-500">Imported</span>}
                   </div>
-                  <button
-                    onClick={() => handleRemoveWorkExperience(item.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  {!item.isImported && (
+                    <button
+                      onClick={() => handleRemoveWorkExperience(item.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -700,6 +594,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                 onClick={handleAddWorkExperience}
                 className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               >
+                <Plus className="w-4 h-4 mr-2 inline-block" />
                 Add Work Experience
               </button>
             </div>
@@ -713,13 +608,16 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                   <div>
                     <h3 className="font-semibold">{item.school}</h3>
                     <p className="text-sm">{item.degree} - {item.year}</p>
+                    {item.isImported && <span className="text-xs text-blue-500">Imported</span>}
                   </div>
-                  <button
-                    onClick={() => handleRemoveEducation(item.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  {!item.isImported && (
+                    <button
+                      onClick={() => handleRemoveEducation(item.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -750,26 +648,55 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                 onClick={handleAddEducation}
                 className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               >
+                <Plus className="w-4 h-4 mr-2 inline-block" />
                 Add Education
               </button>
             </div>
           </div>
 
-          <button
-            onClick={handleSaveProfile}
-            className="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          >
-            <Save className="w-4 h-4 mr-2 inline-block" />
-            Save Profile
-          </button>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold mb-2">GitHub Projects</h2>
+            {profileData.github_projects?.map(project => (
+              <div key={project.id} className="border rounded p-2 mb-2">
+                <h3 className="font-semibold">{project.name}</h3>
+                <p className="text-sm text-gray-600">{project.description}</p>
+                <p className="text-xs text-blue-500">Language: {project.language}</p>
+                <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 text-sm">
+                  <ExternalLink className="w-3 h-3 mr-1 inline-block" />
+                  View on GitHub
+                </a>
+              </div>
+            ))}
+            {(!profileData.github_projects || profileData.github_projects.length === 0) && (
+              <p className="text-gray-500">No GitHub projects imported. Add your GitHub URL and click Import.</p>
+            )}
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold mb-2">Devpost Projects</h2>
+            {profileData.devpost_projects?.map(project => (
+              <div key={project.id} className="border rounded p-2 mb-2">
+                <h3 className="font-semibold">{project.title}</h3>
+                <p className="text-sm text-gray-600">{project.description}</p>
+                <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 text-sm">
+                  <ExternalLink className="w-3 h-3 mr-1 inline-block" />
+                  View on Devpost
+                </a>
+              </div>
+            ))}
+            {(!profileData.devpost_projects || profileData.devpost_projects.length === 0) && (
+              <p className="text-gray-500">No Devpost projects imported. Add your Devpost URL and click Import.</p>
+            )}
+          </div>
+
           <button
             onClick={() => setIsEditing(false)}
-            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2"
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           >
             <X className="w-4 h-4 mr-2 inline-block" />
             Cancel
           </button>
-        }
+        </div>
       ) : (
         <div>
           <div className="mb-4">
@@ -813,7 +740,9 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                 <Github className="w-4 h-4 mr-1 inline-block" />
                 {githubUrl}
               </a>
-            ) : 'Not specified'}
+            ) : (
+              <p>Not specified</p>
+            )}
           </div>
 
           <div className="mb-4">
@@ -823,7 +752,9 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                 <Linkedin className="w-4 h-4 mr-1 inline-block" />
                 {linkedinUrl}
               </a>
-            ) : 'Not specified'}
+            ) : (
+              <p>Not specified</p>
+            )}
           </div>
 
           <div className="mb-4">
@@ -833,7 +764,9 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                 <Code className="w-4 h-4 mr-1 inline-block" />
                 {devpostUrl}
               </a>
-            ) : 'Not specified'}
+            ) : (
+              <p>Not specified</p>
+            )}
           </div>
 
           <div className="mb-4">
@@ -852,7 +785,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           </div>
 
           <div className="mb-4">
-            <h2 className="text-xl font-semibold">Education</h2>
+            <h2 className="text-xl font-semibold">Education Details</h2>
             {profileData.education_details?.length ? (
               profileData.education_details.map(item => (
                 <div key={item.id} className="border rounded p-2 mb-2">
@@ -862,6 +795,43 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               ))
             ) : (
               <p>No education details added.</p>
+            )}
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">GitHub Projects</h2>
+            {profileData.github_projects?.length ? (
+              profileData.github_projects.map(project => (
+                <div key={project.id} className="border rounded p-2 mb-2">
+                  <h3 className="font-semibold">{project.name}</h3>
+                  <p className="text-sm text-gray-600">{project.description}</p>
+                  <p className="text-xs text-blue-500">Language: {project.language}</p>
+                  <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 text-sm">
+                    <ExternalLink className="w-3 h-3 mr-1 inline-block" />
+                    View on GitHub
+                  </a>
+                </div>
+              ))
+            ) : (
+              <p>No GitHub projects imported.</p>
+            )}
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">Devpost Projects</h2>
+            {profileData.devpost_projects?.length ? (
+              profileData.devpost_projects.map(project => (
+                <div key={project.id} className="border rounded p-2 mb-2">
+                  <h3 className="font-semibold">{project.title}</h3>
+                  <p className="text-sm text-gray-600">{project.description}</p>
+                  <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 text-sm">
+                    <ExternalLink className="w-3 h-3 mr-1 inline-block" />
+                    View on Devpost
+                  </a>
+                </div>
+              ))
+            ) : (
+              <p>No Devpost projects imported.</p>
             )}
           </div>
 
