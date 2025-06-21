@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from 'react';
-import ProfileCard from './ProfileCard';
+import ProfileDisplay from './discover/ProfileDisplay';
+import SwipeButtons from './discover/SwipeButtons';
 import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
@@ -191,9 +191,10 @@ const DiscoverPage = () => {
         </p>
       </div>
       
-      <ProfileCard
-        profile={profiles[currentIndex]}
-        onSwipe={handleSwipe}
+      <ProfileDisplay profile={profiles[currentIndex]} />
+      <SwipeButtons 
+        onPass={() => handleSwipe('down')}
+        onLike={() => handleSwipe('up')}
       />
     </div>
   );
