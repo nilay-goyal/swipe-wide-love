@@ -4,8 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Json } from '@/integrations/supabase/types';
-import ProfileDisplay from './profile/ProfileDisplay';
-import ProfileEdit from './profile/ProfileEdit';
+import { MapPin, Briefcase, GraduationCap, Github, Linkedin, Code, Edit3, Save, X, ExternalLink } from 'lucide-react';
 
 interface ProfileData {
   id?: string;
@@ -78,9 +77,6 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     devpost_projects: null,
   });
   const [isEditing, setIsEditing] = useState(false);
-  const [githubUrl, setGithubUrl] = useState('');
-  const [linkedinUrl, setLinkedinUrl] = useState('');
-  const [devpostUrl, setDevpostUrl] = useState('');
   const [importingGitHub, setImportingGitHub] = useState(false);
   const [importingLinkedIn, setImportingLinkedIn] = useState(false);
   const [importingDevpost, setImportingDevpost] = useState(false);
@@ -122,9 +118,6 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
             };
             
             setProfileData(processedData);
-            setGithubUrl(data?.github_url || '');
-            setLinkedinUrl(data?.linkedin_url || '');
-            setDevpostUrl(data?.devpost_url || '');
           }
         } catch (error) {
           console.error('Error fetching profile:', error);
@@ -134,6 +127,14 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
     fetchProfile();
   }, [user]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setProfileData({
+      ...profileData,
+      [name]: value,
+    });
+  };
 
   const handleSaveProfile = async () => {
     if (!user) {
@@ -151,9 +152,9 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           location: profileData.location,
           occupation: profileData.occupation,
           education: profileData.education,
-          github_url: githubUrl,
-          linkedin_url: linkedinUrl,
-          devpost_url: devpostUrl,
+          github_url: profileData.github_url,
+          linkedin_url: profileData.linkedin_url,
+          devpost_url: profileData.devpost_url,
           work_experience: profileData.work_experience,
           education_details: profileData.education_details,
           github_projects: profileData.github_projects,
@@ -179,7 +180,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   };
 
   const importFromGitHub = async () => {
-    if (!githubUrl) {
+    if (!profileData.github_url) {
       toast({
         title: "Error",
         description: "Please enter your GitHub profile URL first",
@@ -190,7 +191,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
     setImportingGitHub(true);
     try {
-      const username = githubUrl.split('/').pop();
+      const username = profileData.github_url.split('/').pop();
       if (!username) throw new Error('Invalid GitHub URL');
 
       const response = await fetch(`https://api.github.com/users/${username}/repos`);
@@ -260,32 +261,280 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
       </div>
 
       {isEditing ? (
-        <ProfileEdit
-          profileData={profileData}
-          onProfileDataChange={setProfileData}
-          githubUrl={githubUrl}
-          linkedinUrl={linkedinUrl}
-          devpostUrl={devpostUrl}
-          onGithubUrlChange={setGithubUrl}
-          onLinkedinUrlChange={setLinkedinUrl}
-          onDevpostUrlChange={setDevpostUrl}
-          onSave={handleSaveProfile}
-          onCancel={() => setIsEditing(false)}
-          onImportGitHub={importFromGitHub}
-          onImportLinkedIn={importFromLinkedIn}
-          onImportDevpost={importFromDevpost}
-          importingGitHub={importingGitHub}
-          importingLinkedIn={importingLinkedIn}
-          importingDevpost={importingDevpost}
-        />
+        <div>
+          <div className="mb-4">
+            <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">
+              Name:
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={profileData.name || ''}
+              onChange={handleInputChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="bio" className="block text-gray-700 text-sm font-bold mb-2">
+              Bio:
+            </label>
+            <textarea
+              id="bio"
+              name="bio"
+              value={profileData.bio || ''}
+              onChange={handleInputChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="location" className="block text-gray-700 text-sm font-bold mb-2">
+              Location:
+            </label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              value={profileData.location || ''}
+              onChange={handleInputChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="occupation" className="block text-gray-700 text-sm font-bold mb-2">
+              Occupation:
+            </label>
+            <input
+              type="text"
+              id="occupation"
+              name="occupation"
+              value={profileData.occupation || ''}
+              onChange={handleInputChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="education" className="block text-gray-700 text-sm font-bold mb-2">
+              Education:
+            </label>
+            <input
+              type="text"
+              id="education"
+              name="education"
+              value={profileData.education || ''}
+              onChange={handleInputChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="github_url" className="block text-gray-700 text-sm font-bold mb-2">
+              GitHub URL:
+            </label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                id="github_url"
+                name="github_url"
+                value={profileData.github_url || ''}
+                onChange={handleInputChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              />
+              <button
+                onClick={importFromGitHub}
+                disabled={importingGitHub}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+              >
+                {importingGitHub ? 'Importing...' : 'Import'}
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="linkedin_url" className="block text-gray-700 text-sm font-bold mb-2">
+              LinkedIn URL:
+            </label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                id="linkedin_url"
+                name="linkedin_url"
+                value={profileData.linkedin_url || ''}
+                onChange={handleInputChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              />
+              <button
+                onClick={importFromLinkedIn}
+                disabled={importingLinkedIn}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+              >
+                {importingLinkedIn ? 'Importing...' : 'Import'}
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="devpost_url" className="block text-gray-700 text-sm font-bold mb-2">
+              Devpost URL:
+            </label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                id="devpost_url"
+                name="devpost_url"
+                value={profileData.devpost_url || ''}
+                onChange={handleInputChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              />
+              <button
+                onClick={importFromDevpost}
+                disabled={importingDevpost}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+              >
+                {importingDevpost ? 'Importing...' : 'Import'}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex space-x-4">
+            <button
+              onClick={handleSaveProfile}
+              className="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              <Save className="w-4 h-4 mr-2 inline-block" />
+              Save All Changes
+            </button>
+            
+            <button
+              onClick={() => setIsEditing(false)}
+              className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              <X className="w-4 h-4 mr-2 inline-block" />
+              Cancel
+            </button>
+          </div>
+        </div>
       ) : (
-        <ProfileDisplay
-          profileData={profileData}
-          githubUrl={githubUrl}
-          linkedinUrl={linkedinUrl}
-          devpostUrl={devpostUrl}
-          onEdit={() => setIsEditing(true)}
-        />
+        <div>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">Name</h2>
+            <p>{profileData.name || 'Not specified'}</p>
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">Bio</h2>
+            <p>{profileData.bio || 'Not specified'}</p>
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">Location</h2>
+            <p>
+              <MapPin className="w-4 h-4 mr-1 inline-block" />
+              {profileData.location || 'Not specified'}
+            </p>
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">Occupation</h2>
+            <p>
+              <Briefcase className="w-4 h-4 mr-1 inline-block" />
+              {profileData.occupation || 'Not specified'}
+            </p>
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">Education</h2>
+            <p>
+              <GraduationCap className="w-4 h-4 mr-1 inline-block" />
+              {profileData.education || 'Not specified'}
+            </p>
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">GitHub</h2>
+            {profileData.github_url ? (
+              <a href={profileData.github_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
+                <Github className="w-4 h-4 mr-1 inline-block" />
+                {profileData.github_url}
+              </a>
+            ) : (
+              <p>Not specified</p>
+            )}
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">LinkedIn</h2>
+            {profileData.linkedin_url ? (
+              <a href={profileData.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
+                <Linkedin className="w-4 h-4 mr-1 inline-block" />
+                {profileData.linkedin_url}
+              </a>
+            ) : (
+              <p>Not specified</p>
+            )}
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">Devpost</h2>
+            {profileData.devpost_url ? (
+              <a href={profileData.devpost_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
+                <Code className="w-4 h-4 mr-1 inline-block" />
+                {profileData.devpost_url}
+              </a>
+            ) : (
+              <p>Not specified</p>
+            )}
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">GitHub Projects</h2>
+            {profileData.github_projects?.length ? (
+              profileData.github_projects.map(project => (
+                <div key={project.id} className="border rounded p-2 mb-2">
+                  <h3 className="font-semibold">{project.name}</h3>
+                  <p className="text-sm text-gray-600">{project.description}</p>
+                  <p className="text-xs text-blue-500">Language: {project.language}</p>
+                  <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 text-sm">
+                    <ExternalLink className="w-3 h-3 mr-1 inline-block" />
+                    View on GitHub
+                  </a>
+                </div>
+              ))
+            ) : (
+              <p>No GitHub projects imported.</p>
+            )}
+          </div>
+
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">Devpost Projects</h2>
+            {profileData.devpost_projects?.length ? (
+              profileData.devpost_projects.map(project => (
+                <div key={project.id} className="border rounded p-2 mb-2">
+                  <h3 className="font-semibold">{project.title}</h3>
+                  <p className="text-sm text-gray-600">{project.description}</p>
+                  <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 text-sm">
+                    <ExternalLink className="w-3 h-3 mr-1 inline-block" />
+                    View on Devpost
+                  </a>
+                </div>
+              ))
+            ) : (
+              <p>No Devpost projects imported.</p>
+            )}
+          </div>
+
+          <button
+            onClick={() => setIsEditing(true)}
+            className="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            <Edit3 className="w-4 h-4 mr-2 inline-block" />
+            Edit Profile
+          </button>
+        </div>
       )}
     </div>
   );

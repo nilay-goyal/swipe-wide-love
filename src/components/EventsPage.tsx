@@ -4,9 +4,6 @@ import { RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useUserHackathons } from '@/hooks/useUserHackathons';
-import EventsHeader from './EventsHeader';
-import HackathonCard from './HackathonCard';
 
 interface HackathonEvent {
   id: string;
@@ -24,7 +21,6 @@ interface HackathonEvent {
 const EventsPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { joinedEvents, joinHackathon, leaveHackathon } = useUserHackathons();
   const [events, setEvents] = useState<HackathonEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -75,58 +71,6 @@ const EventsPage = () => {
     }
   };
 
-  const handleJoinEvent = async (eventId: string, eventTitle: string, mlhUrl: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to join hackathons",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const isJoined = joinedEvents.includes(eventId);
-    
-    if (isJoined) {
-      const success = await leaveHackathon(eventId);
-      if (success) {
-        toast({
-          title: "Left Hackathon",
-          description: `You've left "${eventTitle}"`,
-          duration: 2000,
-        });
-      }
-    } else {
-      if (mlhUrl) {
-        window.open(mlhUrl, '_blank', 'noopener,noreferrer');
-        
-        setTimeout(() => {
-          const confirmed = window.confirm(
-            `Did you successfully register for "${eventTitle}" on the MLH website? Click OK only if you were accepted and registered.`
-          );
-          
-          if (confirmed) {
-            joinHackathon(eventId).then((success) => {
-              if (success) {
-                toast({
-                  title: "Hackathon Joined! 🎉",
-                  description: `Successfully recorded participation in "${eventTitle}"`,
-                  duration: 3000,
-                });
-              }
-            });
-          }
-        }, 2000);
-      } else {
-        toast({
-          title: "No Registration Link",
-          description: "MLH registration link not available for this event",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -141,7 +85,19 @@ const EventsPage = () => {
 
   return (
     <div className="py-8">
-      <EventsHeader onRefresh={scrapeNewEvents} refreshing={refreshing} />
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">MLH Hackathon Events</h1>
+        <p className="text-gray-600 mb-4">Discover amazing hackathons from Major League Hacking</p>
+        
+        <button
+          onClick={scrapeNewEvents}
+          disabled={refreshing}
+          className="inline-flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Refreshing...' : 'Refresh Events'}
+        </button>
+      </div>
 
       {events.length === 0 ? (
         <div className="text-center py-12">
@@ -158,12 +114,89 @@ const EventsPage = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
           {events.map((event) => (
-            <HackathonCard
-              key={event.id}
-              event={event}
-              isJoined={joinedEvents.includes(event.id)}
-              onJoinEvent={handleJoinEvent}
-            />
+            <div key={event.id} className="bg-white rounded-2xl shadow-lg overflow-hidden card-hover">
+              <div className="flex h-64">
+                <div className="w-2/5 relative">
+                  <img
+                    src={event.image_url || 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=250&fit=crop'}
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=250&fit=crop';
+                    }}
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span className="bg-pink-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                      Hackathon
+                    </span>
+                  </div>
+                  {event.difficulty_level && (
+                    <div className="absolute bottom-3 right-3">
+                      <span className="bg-black/70 text-white px-2 py-1 rounded-full text-sm font-medium">
+                        {event.difficulty_level}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-3/5 p-6 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">{event.title}</h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                      {event.description || 'Amazing hackathon opportunity to build, learn, and connect with fellow developers.'}
+                    </p>
+                    
+                    <div className="space-y-2">
+                      {event.date_start && (
+                        <div className="flex items-center text-gray-500 text-sm">
+                          <span>
+                            {new Date(event.date_start).toLocaleDateString('en-US', { 
+                              weekday: 'short', 
+                              month: 'short', 
+                              day: 'numeric' 
+                            })}
+                            {event.date_end && event.date_end !== event.date_start && 
+                              ` - ${new Date(event.date_end).toLocaleDateString('en-US', { 
+                                weekday: 'short', 
+                                month: 'short', 
+                                day: 'numeric' 
+                              })}`
+                            }
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center text-gray-500 text-sm">
+                        <span>{event.location || 'Location TBA'}</span>
+                      </div>
+                      
+                      {event.application_deadline && (
+                        <div className="flex items-center text-gray-500 text-sm">
+                          <span>Apply by {new Date(event.application_deadline).toLocaleDateString('en-US', { 
+                            weekday: 'short', 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {event.mlh_url && (
+                      <a
+                        href={event.mlh_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full py-3 text-center bg-pink-600 text-white rounded-lg hover:bg-pink-700 font-medium transition-colors"
+                      >
+                        View on MLH →
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}
