@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import ProfileCard from './ProfileCard';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +18,6 @@ const DiscoverPage = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Sample profiles data
   const sampleProfiles: Profile[] = [
     {
       id: 1,
@@ -54,30 +54,6 @@ const DiscoverPage = () => {
         "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&h=600&fit=crop&crop=face"
       ],
       interests: ["Art", "Dancing", "Music", "Fashion"]
-    },
-    {
-      id: 4,
-      name: "Marcus",
-      age: 31,
-      bio: "Tech entrepreneur with a love for fitness and mindfulness. Seeking a genuine connection with someone who values growth and adventure.",
-      distance: 2,
-      photos: [
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=500&h=600&fit=crop&crop=face",
-        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=500&h=600&fit=crop&crop=face"
-      ],
-      interests: ["Technology", "Fitness", "Meditation", "Business"]
-    },
-    {
-      id: 5,
-      name: "Luna",
-      age: 27,
-      bio: "Environmental scientist who loves the outdoors. Let's swap stories around a campfire or discover hidden gems in the city together.",
-      distance: 9,
-      photos: [
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&h=600&fit=crop&crop=face",
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&h=600&fit=crop&crop=face"
-      ],
-      interests: ["Nature", "Science", "Camping", "Sustainability"]
     }
   ];
 
@@ -89,7 +65,6 @@ const DiscoverPage = () => {
     const currentProfile = profiles[currentIndex];
     
     if (direction === 'up') {
-      // Simulate 50% match rate
       const isMatch = Math.random() > 0.5;
       
       if (isMatch) {
@@ -107,7 +82,6 @@ const DiscoverPage = () => {
       }
     }
 
-    // Move to next profile
     if (currentIndex < profiles.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {

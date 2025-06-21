@@ -20,7 +20,7 @@ const ProfilePage = () => {
   const [profile, setProfile] = useState<UserProfile>({
     name: "Jordan Smith",
     age: 28,
-    bio: "Adventure seeker and coffee enthusiast. Love exploring new places, trying different cuisines, and meeting new people. Looking for genuine connections and someone to share life's beautiful moments with.",
+    bio: "Adventure seeker and coffee enthusiast. Love exploring new places, trying different cuisines, and meeting new people.",
     location: "San Francisco, CA",
     photos: [
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face",
@@ -49,27 +49,9 @@ const ProfilePage = () => {
     setIsEditing(false);
   };
 
-  const addInterest = () => {
-    const newInterest = prompt("Add a new interest:");
-    if (newInterest && !editedProfile.interests.includes(newInterest)) {
-      setEditedProfile({
-        ...editedProfile,
-        interests: [...editedProfile.interests, newInterest]
-      });
-    }
-  };
-
-  const removeInterest = (interest: string) => {
-    setEditedProfile({
-      ...editedProfile,
-      interests: editedProfile.interests.filter(i => i !== interest)
-    });
-  };
-
   return (
     <div className="py-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">My Profile</h1>
           <p className="text-gray-600">Manage your dating profile information</p>
@@ -77,10 +59,8 @@ const ProfilePage = () => {
 
         <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
           <div className="flex h-auto">
-            {/* Photo Section */}
             <div className="w-2/5 p-8">
               <div className="space-y-4">
-                {/* Main Photo */}
                 <div className="relative group">
                   <img
                     src={profile.photos[0]}
@@ -94,7 +74,6 @@ const ProfilePage = () => {
                   )}
                 </div>
 
-                {/* Additional Photos */}
                 <div className="grid grid-cols-2 gap-4">
                   {profile.photos.slice(1).map((photo, index) => (
                     <div key={index + 1} className="relative group">
@@ -111,19 +90,10 @@ const ProfilePage = () => {
                     </div>
                   ))}
                 </div>
-
-                {isEditing && (
-                  <button className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-pink-300 hover:text-pink-500 transition-colors">
-                    <Camera className="w-6 h-6 mx-auto mb-1" />
-                    Add Photos
-                  </button>
-                )}
               </div>
             </div>
 
-            {/* Info Section */}
             <div className="w-3/5 p-8">
-              {/* Action Buttons */}
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">Profile Details</h2>
                 <div className="flex space-x-3">
@@ -160,9 +130,7 @@ const ProfilePage = () => {
                 </div>
               </div>
 
-              {/* Profile Fields */}
               <div className="space-y-6">
-                {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
@@ -193,7 +161,6 @@ const ProfilePage = () => {
                   </div>
                 </div>
 
-                {/* Location */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
                   {isEditing ? (
@@ -211,7 +178,6 @@ const ProfilePage = () => {
                   )}
                 </div>
 
-                {/* Bio */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
                   {isEditing ? (
@@ -226,80 +192,21 @@ const ProfilePage = () => {
                   )}
                 </div>
 
-                {/* Professional Info */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Occupation</label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={editedProfile.occupation}
-                        onChange={(e) => setEditedProfile({...editedProfile, occupation: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      />
-                    ) : (
-                      <p className="text-gray-800">{profile.occupation}</p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Education</label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={editedProfile.education}
-                        onChange={(e) => setEditedProfile({...editedProfile, education: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      />
-                    ) : (
-                      <p className="text-gray-800">{profile.education}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Interests */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Interests</label>
                   <div className="flex flex-wrap gap-2">
-                    {(isEditing ? editedProfile : profile).interests.map((interest, index) => (
+                    {profile.interests.map((interest, index) => (
                       <span
                         key={index}
-                        className={`px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium ${
-                          isEditing ? 'cursor-pointer hover:bg-red-100 hover:text-red-700' : ''
-                        }`}
-                        onClick={() => isEditing && removeInterest(interest)}
+                        className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium"
                       >
-                        {interest} {isEditing && '×'}
+                        {interest}
                       </span>
                     ))}
-                    {isEditing && (
-                      <button
-                        onClick={addInterest}
-                        className="px-3 py-1 border-2 border-dashed border-pink-300 text-pink-600 rounded-full text-sm font-medium hover:border-pink-400 hover:text-pink-700 transition-colors"
-                      >
-                        + Add Interest
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Profile Statistics */}
-        <div className="mt-8 grid grid-cols-3 gap-6">
-          <div className="bg-white rounded-2xl p-6 text-center shadow-lg">
-            <div className="text-2xl font-bold text-pink-600 mb-2">127</div>
-            <p className="text-gray-600">Profile Views</p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 text-center shadow-lg">
-            <div className="text-2xl font-bold text-pink-600 mb-2">42</div>
-            <p className="text-gray-600">Matches</p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 text-center shadow-lg">
-            <div className="text-2xl font-bold text-pink-600 mb-2">15</div>
-            <p className="text-gray-600">Messages</p>
           </div>
         </div>
       </div>

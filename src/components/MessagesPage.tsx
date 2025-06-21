@@ -36,44 +36,8 @@ const MessagesPage = () => {
       isOnline: true,
       messages: [
         { id: 1, senderId: 1, text: "Hey! Thanks for the match 😊", timestamp: "10:30 AM" },
-        { id: 2, senderId: 0, text: "Hi Emma! I love your travel photos, especially the one from Italy!", timestamp: "10:32 AM" },
-        { id: 3, senderId: 1, text: "Thank you! That was an amazing trip. Do you enjoy traveling too?", timestamp: "10:35 AM" },
-        { id: 4, senderId: 0, text: "Absolutely! I'm planning a trip to Greece this summer. Any recommendations?", timestamp: "10:40 AM" },
-        { id: 5, senderId: 1, text: "Oh Greece is incredible! You have to visit Santorini and Mykonos. The sunsets are breathtaking!", timestamp: "10:42 AM" },
-        { id: 6, senderId: 0, text: "That sounds perfect! Maybe we could grab coffee and you can tell me more about your travels?", timestamp: "11:15 AM" },
-        { id: 7, senderId: 1, text: "That sounds like a great plan! 😊", timestamp: "11:18 AM" }
-      ]
-    },
-    {
-      id: 2,
-      matchId: 2,
-      name: "Alex",
-      photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-      lastMessage: "Would love to cook together sometime!",
-      lastMessageTime: "1h ago",
-      unread: false,
-      isOnline: false,
-      messages: [
-        { id: 1, senderId: 2, text: "Hi there! I see you're into cooking too!", timestamp: "Yesterday" },
-        { id: 2, senderId: 0, text: "Yes! I saw your pasta dish on your profile - it looked amazing!", timestamp: "Yesterday" },
-        { id: 3, senderId: 2, text: "Thanks! I love experimenting with new recipes. What's your signature dish?", timestamp: "Yesterday" },
-        { id: 4, senderId: 0, text: "I make a mean risotto! It's all about the timing and patience.", timestamp: "Yesterday" },
-        { id: 5, senderId: 2, text: "Would love to cook together sometime!", timestamp: "1h ago" }
-      ]
-    },
-    {
-      id: 3,
-      matchId: 3,
-      name: "Sofia",
-      photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face",
-      lastMessage: "The art exhibition was amazing!",
-      lastMessageTime: "3h ago",
-      unread: true,
-      isOnline: true,
-      messages: [
-        { id: 1, senderId: 3, text: "Hey! I noticed we both love art 🎨", timestamp: "Today" },
-        { id: 2, senderId: 0, text: "Yes! I just went to the modern art museum last weekend", timestamp: "Today" },
-        { id: 3, senderId: 3, text: "The art exhibition was amazing!", timestamp: "3h ago" }
+        { id: 2, senderId: 0, text: "Hi Emma! I love your travel photos!", timestamp: "10:32 AM" },
+        { id: 3, senderId: 1, text: "That sounds like a great plan! 😊", timestamp: "11:18 AM" }
       ]
     }
   ]);
@@ -87,7 +51,7 @@ const MessagesPage = () => {
       if (conv.id === selectedConversation) {
         const newMsg: Message = {
           id: conv.messages.length + 1,
-          senderId: 0, // Current user
+          senderId: 0,
           text: newMessage,
           timestamp: new Date().toLocaleTimeString('en-US', { 
             hour: 'numeric', 
@@ -122,7 +86,6 @@ const MessagesPage = () => {
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-3xl shadow-lg overflow-hidden h-[600px]">
           <div className="flex h-full">
-            {/* Conversations List */}
             <div className="w-1/3 border-r border-gray-200">
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-xl font-bold text-gray-800">Messages</h2>
@@ -169,11 +132,9 @@ const MessagesPage = () => {
               </div>
             </div>
 
-            {/* Chat Area */}
             <div className="flex-1 flex flex-col">
               {selectedConv ? (
                 <>
-                  {/* Chat Header */}
                   <div className="p-6 border-b border-gray-200 flex items-center space-x-3">
                     <div className="relative">
                       <img
@@ -193,7 +154,6 @@ const MessagesPage = () => {
                     </div>
                   </div>
 
-                  {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-6 space-y-4">
                     {selectedConv.messages.map((message) => (
                       <div
@@ -218,7 +178,6 @@ const MessagesPage = () => {
                     ))}
                   </div>
 
-                  {/* Message Input */}
                   <div className="p-6 border-t border-gray-200">
                     <div className="flex items-center space-x-3">
                       <div className="flex-1 relative">

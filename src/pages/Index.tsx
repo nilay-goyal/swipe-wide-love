@@ -28,7 +28,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-50 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-50 pb-32">
       <main className="container mx-auto px-4 pt-8">
         {renderCurrentPage()}
       </main>

@@ -44,10 +44,8 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
     
     if (Math.abs(dragOffset.y) > threshold) {
       if (dragOffset.y < -threshold) {
-        // Swiped up - accept/like
         onSwipe('up');
       } else if (dragOffset.y > threshold) {
-        // Swiped down - decline/reject
         onSwipe('down');
       }
     }
@@ -106,7 +104,6 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
         onTouchEnd={handleTouchEnd}
       >
         <div className="flex h-96">
-          {/* Photo Section */}
           <div className="w-1/2 relative">
             <img
               src={profile.photos[currentPhotoIndex]}
@@ -114,7 +111,6 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
               className="w-full h-full object-cover"
             />
             
-            {/* Photo Navigation */}
             <div className="absolute top-4 left-4 right-4 flex space-x-1">
               {profile.photos.map((_, index) => (
                 <div
@@ -126,7 +122,6 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
               ))}
             </div>
             
-            {/* Photo Navigation Buttons */}
             <button
               onClick={prevPhoto}
               className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-black/20 text-white rounded-full flex items-center justify-center hover:bg-black/40 transition-colors"
@@ -140,7 +135,6 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
               →
             </button>
 
-            {/* Swipe Indicators */}
             {isDragging && (
               <>
                 {dragOffset.y < -50 && (
@@ -161,7 +155,6 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
             )}
           </div>
 
-          {/* Info Section */}
           <div className="w-1/2 p-8 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -177,7 +170,6 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
 
               <p className="text-gray-700 text-lg mb-6 leading-relaxed">{profile.bio}</p>
 
-              {/* Interests */}
               <div className="flex flex-wrap gap-2 mb-6">
                 {profile.interests.map((interest, index) => (
                   <span
@@ -190,7 +182,6 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
               </div>
             </div>
 
-            {/* Swipe Instructions */}
             <div className="text-center text-gray-500">
               <p className="text-sm">Swipe up to like ❤️</p>
               <p className="text-sm">Swipe down to pass ✕</p>

@@ -47,58 +47,6 @@ const EventsPage = () => {
       image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&h=250&fit=crop",
       price: 45,
       category: "Social"
-    },
-    {
-      id: 3,
-      title: "Cooking Class Date",
-      description: "Learn to cook Italian cuisine while meeting someone special. All skill levels welcome!",
-      date: "2024-07-20",
-      time: "5:00 PM",
-      location: "Culinary Studio Downtown",
-      attendees: 12,
-      maxAttendees: 16,
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=250&fit=crop",
-      price: 55,
-      category: "Activity"
-    },
-    {
-      id: 4,
-      title: "Outdoor Adventure Meetup",
-      description: "Hiking and outdoor activities followed by a social gathering. Great for active singles!",
-      date: "2024-07-22",
-      time: "9:00 AM",
-      location: "Mountain Trail Park",
-      attendees: 25,
-      maxAttendees: 30,
-      image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=250&fit=crop",
-      price: 25,
-      category: "Outdoor"
-    },
-    {
-      id: 5,
-      title: "Art Gallery Opening",
-      description: "Exclusive art gallery opening with champagne and conversation starters around beautiful artwork.",
-      date: "2024-07-25",
-      time: "7:30 PM",
-      location: "Modern Art Gallery",
-      attendees: 32,
-      maxAttendees: 40,
-      image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=250&fit=crop",
-      price: 30,
-      category: "Cultural"
-    },
-    {
-      id: 6,
-      title: "Trivia & Cocktails",
-      description: "Test your knowledge while sipping craft cocktails. Teams will be mixed for natural conversation!",
-      date: "2024-07-27",
-      time: "8:00 PM",
-      location: "The Quiz Pub",
-      attendees: 28,
-      maxAttendees: 36,
-      image: "https://images.unsplash.com/photo-1574391884720-bbc0878f3e68?w=400&h=250&fit=crop",
-      price: 20,
-      category: "Social"
     }
   ];
 
@@ -144,7 +92,6 @@ const EventsPage = () => {
           return (
             <div key={event.id} className="bg-white rounded-2xl shadow-lg overflow-hidden card-hover">
               <div className="flex h-64">
-                {/* Image Section */}
                 <div className="w-2/5 relative">
                   <img
                     src={event.image}
@@ -163,7 +110,6 @@ const EventsPage = () => {
                   </div>
                 </div>
 
-                {/* Content Section */}
                 <div className="w-3/5 p-6 flex flex-col justify-between">
                   <div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">{event.title}</h3>
@@ -208,19 +154,6 @@ const EventsPage = () => {
           );
         })}
       </div>
-
-      {joinedEvents.length > 0 && (
-        <div className="mt-12 text-center">
-          <div className="bg-pink-50 border border-pink-200 rounded-2xl p-6 max-w-md mx-auto">
-            <h3 className="text-lg font-semibold text-pink-800 mb-2">
-              Your Upcoming Events
-            </h3>
-            <p className="text-pink-600">
-              You're registered for {joinedEvents.length} event{joinedEvents.length !== 1 ? 's' : ''}!
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

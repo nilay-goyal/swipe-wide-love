@@ -22,16 +22,6 @@ const PremiumPage = () => {
       icon: Zap,
       title: "5 Super Likes per day",
       description: "Stand out with Super Likes that notify matches immediately"
-    },
-    {
-      icon: Crown,
-      title: "Priority Visibility",
-      description: "Your profile gets shown to more people for better matches"
-    },
-    {
-      icon: Star,
-      title: "Rewind Feature",
-      description: "Undo your last swipe if you changed your mind"
     }
   ];
 
@@ -72,7 +62,6 @@ const PremiumPage = () => {
 
   return (
     <div className="py-8">
-      {/* Hero Section */}
       <div className="text-center mb-12">
         <div className="premium-gradient w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center">
           <Crown className="w-10 h-10 text-white" />
@@ -85,9 +74,8 @@ const PremiumPage = () => {
         </p>
       </div>
 
-      {/* Features Grid */}
       <div className="max-w-4xl mx-auto mb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
@@ -103,7 +91,6 @@ const PremiumPage = () => {
         </div>
       </div>
 
-      {/* Pricing Section */}
       <div className="max-w-4xl mx-auto">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
           Choose Your Plan
@@ -127,14 +114,6 @@ const PremiumPage = () => {
                   </span>
                 </div>
               )}
-              
-              {plan.savings && (
-                <div className="absolute top-4 right-4">
-                  <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                    {plan.savings}
-                  </span>
-                </div>
-              )}
 
               <div className="text-center mb-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-2">{plan.name}</h3>
@@ -142,20 +121,6 @@ const PremiumPage = () => {
                   <span className="text-3xl font-bold text-gray-800">${plan.price}</span>
                   <span className="text-gray-600">/{plan.period}</span>
                 </div>
-                {plan.id !== 'monthly' && (
-                  <p className="text-sm text-gray-500">
-                    Billed ${(plan.price * (plan.id === '6month' ? 6 : 12)).toFixed(2)} {plan.id === '6month' ? 'every 6 months' : 'annually'}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-3 mb-6">
-                {features.slice(0, 3).map((feature, index) => (
-                  <div key={index} className="flex items-center">
-                    <Check className="w-5 h-5 text-green-500 mr-3" />
-                    <span className="text-gray-700 text-sm">{feature.title}</span>
-                  </div>
-                ))}
               </div>
 
               <button
@@ -170,42 +135,6 @@ const PremiumPage = () => {
               </button>
             </div>
           ))}
-        </div>
-
-        {/* CTA Section */}
-        <div className="text-center">
-          <button
-            onClick={() => handleUpgrade(plans.find(p => p.id === selectedPlan)!)}
-            className="premium-gradient text-white px-8 py-4 rounded-full text-lg font-semibold hover:opacity-90 transition-opacity"
-          >
-            Upgrade to Premium Now
-          </button>
-          <p className="text-gray-500 text-sm mt-4">
-            Cancel anytime • Secure payment • 7-day money back guarantee
-          </p>
-        </div>
-      </div>
-
-      {/* Stats Section */}
-      <div className="mt-16 bg-gradient-to-r from-pink-50 to-yellow-50 rounded-3xl p-8 max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h3 className="text-2xl font-bold text-gray-800 mb-2">Join 50,000+ Premium Members</h3>
-          <p className="text-gray-600">Premium members get 3x more matches on average</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          <div>
-            <div className="text-3xl font-bold text-pink-600 mb-2">3x</div>
-            <p className="text-gray-700">More Matches</p>
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-pink-600 mb-2">5x</div>
-            <p className="text-gray-700">More Super Likes</p>
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-pink-600 mb-2">100%</div>
-            <p className="text-gray-700">Satisfaction Rate</p>
-          </div>
         </div>
       </div>
     </div>
