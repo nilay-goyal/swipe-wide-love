@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import EventsHeader from './events/EventsHeader';
 import EventCard from './events/EventCard';
 import EmptyEventsState from './events/EmptyEventsState';
@@ -21,6 +22,7 @@ interface HackathonEvent {
 
 const EventsPage = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [events, setEvents] = useState<HackathonEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -44,6 +46,23 @@ const EventsPage = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserJoinedEvents = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('joined_events')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      setJoinedEvents(data?.joined_events || []);
+    } catch (error) {
+      console.error('Error fetching joined events:', error);
     }
   };
 
@@ -77,21 +96,81 @@ const EventsPage = () => {
     fetchEvents();
   }, []);
 
-  const handleJoinEvent = (eventId: string, eventTitle: string) => {
-    if (joinedEvents.includes(eventId)) {
-      setJoinedEvents(joinedEvents.filter(id => id !== eventId));
+  useEffect(() => {
+    if (user) {
+      fetchUserJoinedEvents();
+    }
+  }, [user]);
+
+  const handleJoinEvent = async (eventId: string, eventTitle: string, mlhUrl: string) => {
+    if (!user) {
       toast({
-        title: "Left Event",
-        description: `You've left "${eventTitle}"`,
-        duration: 2000,
+        title: "Authentication Required",
+        description: "Please sign in to join hackathons",
+        variant: "destructive",
       });
+      return;
+    }
+
+    const isAlreadyJoined = joinedEvents.includes(eventId);
+    
+    if (isAlreadyJoined) {
+      // Remove from joined events
+      const updatedEvents = joinedEvents.filter(id => id !== eventId);
+      
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ joined_events: updatedEvents })
+          .eq('id', user.id);
+
+        if (error) throw error;
+        
+        setJoinedEvents(updatedEvents);
+        toast({
+          title: "Left Hackathon",
+          description: `You've left "${eventTitle}"`,
+          duration: 2000,
+        });
+      } catch (error) {
+        console.error('Error updating joined events:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update your joined events",
+          variant: "destructive",
+        });
+      }
     } else {
-      setJoinedEvents([...joinedEvents, eventId]);
-      toast({
-        title: "Event Joined! 🎉",
-        description: `You're interested in "${eventTitle}"`,
-        duration: 3000,
-      });
+      // Add to joined events and redirect to MLH
+      const updatedEvents = [...joinedEvents, eventId];
+      
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ joined_events: updatedEvents })
+          .eq('id', user.id);
+
+        if (error) throw error;
+        
+        setJoinedEvents(updatedEvents);
+        toast({
+          title: "Hackathon Joined! 🎉",
+          description: `You've joined "${eventTitle}". Redirecting to MLH...`,
+          duration: 3000,
+        });
+
+        // Redirect to MLH page
+        if (mlhUrl) {
+          window.open(mlhUrl, '_blank');
+        }
+      } catch (error) {
+        console.error('Error updating joined events:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update your joined events",
+          variant: "destructive",
+        });
+      }
     }
   };
 

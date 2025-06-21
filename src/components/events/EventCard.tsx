@@ -1,5 +1,5 @@
 
-import { Calendar, MapPin, Clock } from 'lucide-react';
+import { Calendar, MapPin, Clock, ExternalLink } from 'lucide-react';
 
 interface HackathonEvent {
   id: string;
@@ -17,7 +17,7 @@ interface HackathonEvent {
 interface EventCardProps {
   event: HackathonEvent;
   isJoined: boolean;
-  onJoinEvent: (eventId: string, eventTitle: string) => void;
+  onJoinEvent: (eventId: string, eventTitle: string, mlhUrl: string) => void;
   formatDate: (dateString: string | null) => string;
 }
 
@@ -81,17 +81,32 @@ const EventCard = ({ event, isJoined, onJoinEvent, formatDate }: EventCardProps)
 
           <div className="space-y-2">
             <button
-              onClick={() => onJoinEvent(event.id, event.title)}
-              className={`w-full py-3 rounded-lg font-medium transition-all duration-200 ${
+              onClick={() => onJoinEvent(event.id, event.title, event.mlh_url)}
+              className={`w-full py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
                 isJoined
                   ? 'bg-green-100 text-green-700 hover:bg-green-200'
                   : 'dating-gradient text-white hover:opacity-90'
               }`}
             >
-              {isJoined ? 'Interested ✓' : 'Mark Interested'}
+              {isJoined ? (
+                <>
+                  <span>Joined Hackathon ✓</span>
+                </>
+              ) : (
+                <>
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Join Hackathon</span>
+                </>
+              )}
             </button>
             
-            {event.mlh_url && (
+            {isJoined && (
+              <p className="text-xs text-center text-gray-500 leading-tight">
+                ⚠️ Only mark as joined if you've been accepted into the hackathon
+              </p>
+            )}
+            
+            {event.mlh_url && !isJoined && (
               <a
                 href={event.mlh_url}
                 target="_blank"
