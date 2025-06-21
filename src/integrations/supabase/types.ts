@@ -96,12 +96,12 @@ export type Database = {
         }
         Relationships: []
       }
-      users_real: {
+      users_data: {
         Row: {
           "Backend Dev": number | null
           "Check the skills you're comfortable with:": string | null
           Cybersecurity: number | null
-          "Enter name:": string | null
+          "Enter name:": string
           "Enter the major you're pursuing:": string | null
           "Enter the school/university you're attending:": string | null
           "Enter your year:": string | null
@@ -119,7 +119,7 @@ export type Database = {
           "Backend Dev"?: number | null
           "Check the skills you're comfortable with:"?: string | null
           Cybersecurity?: number | null
-          "Enter name:"?: string | null
+          "Enter name:": string
           "Enter the major you're pursuing:"?: string | null
           "Enter the school/university you're attending:"?: string | null
           "Enter your year:"?: string | null
@@ -137,7 +137,7 @@ export type Database = {
           "Backend Dev"?: number | null
           "Check the skills you're comfortable with:"?: string | null
           Cybersecurity?: number | null
-          "Enter name:"?: string | null
+          "Enter name:"?: string
           "Enter the major you're pursuing:"?: string | null
           "Enter the school/university you're attending:"?: string | null
           "Enter your year:"?: string | null

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, Clock, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -29,7 +28,7 @@ const EventsPage = () => {
       const { data, error } = await supabase
         .from('hackathon_events')
         .select('*')
-        .order('date_start', { ascending: true, nullsLast: true });
+        .order('date_start', { ascending: true, nullsFirst: false });
 
       if (error) throw error;
       setEvents(data || []);
