@@ -1,14 +1,29 @@
 
 import { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import Navigation from '../components/Navigation';
 import DiscoverPage from '../components/DiscoverPage';
 import EventsPage from '../components/EventsPage';
 import PremiumPage from '../components/PremiumPage';
 import MessagesPage from '../components/MessagesPage';
 import ProfilePage from '../components/ProfilePage';
+import AuthPage from '../components/AuthPage';
 
 const Index = () => {
-  const [currentPage, setCurrentPage] = useState('discover');
+  const { user, loading } = useAuth();
+  const [currentPage, setCurrentPage] = useState('profile'); // Default to profile page
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-50 flex items-center justify-center">
+        <div className="text-2xl font-semibold text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage />;
+  }
 
   const renderCurrentPage = () => {
     switch (currentPage) {
@@ -23,7 +38,7 @@ const Index = () => {
       case 'profile':
         return <ProfilePage />;
       default:
-        return <DiscoverPage />;
+        return <ProfilePage />;
     }
   };
 
