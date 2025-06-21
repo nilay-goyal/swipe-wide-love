@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import ProfileCard from './ProfileCard';
 import { useToast } from '@/hooks/use-toast';
@@ -86,10 +85,10 @@ const DiscoverPage = () => {
     setProfiles(sampleProfiles);
   }, []);
 
-  const handleSwipe = (direction: 'left' | 'right') => {
+  const handleSwipe = (direction: 'up' | 'down') => {
     const currentProfile = profiles[currentIndex];
     
-    if (direction === 'right') {
+    if (direction === 'up') {
       // Simulate 50% match rate
       const isMatch = Math.random() > 0.5;
       
