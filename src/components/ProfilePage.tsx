@@ -3,6 +3,7 @@ import { MapPin, Briefcase, GraduationCap, Code, Edit3, Save, X, Plus, ExternalL
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import type { Json } from '@/integrations/supabase/types';
 
 interface ProfileData {
   id?: string;
@@ -95,6 +96,21 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   const [importingLinkedIn, setImportingLinkedIn] = useState(false);
   const [importingDevpost, setImportingDevpost] = useState(false);
 
+  // Helper function to safely parse JSON data
+  const parseJsonField = (jsonData: Json | null): any[] => {
+    if (!jsonData) return [];
+    if (Array.isArray(jsonData)) return jsonData;
+    if (typeof jsonData === 'string') {
+      try {
+        const parsed = JSON.parse(jsonData);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
   useEffect(() => {
     const fetchProfile = async () => {
       if (user) {
@@ -108,10 +124,15 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           if (error) {
             console.error('Error fetching profile:', error);
           } else if (data) {
-            setProfileData({
+            const processedData: ProfileData = {
               ...data,
-              devpost_projects: data.devpost_projects || null,
-            });
+              work_experience: parseJsonField(data.work_experience),
+              education_details: parseJsonField(data.education_details),
+              github_projects: parseJsonField(data.github_projects),
+              devpost_projects: parseJsonField(data.devpost_projects),
+            };
+            
+            setProfileData(processedData);
             setGithubUrl(data?.github_url || '');
             setLinkedinUrl(data?.linkedin_url || '');
             setDevpostUrl(data?.devpost_url || '');
@@ -155,6 +176,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           work_experience: profileData.work_experience,
           education_details: profileData.education_details,
           github_projects: profileData.github_projects,
+          devpost_projects: profileData.devpost_projects,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'id' });
 
