@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Users, Clock, RefreshCw } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, RefreshCw, ExternalLink, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface HackathonEvent {
   id: string;
@@ -18,6 +20,7 @@ interface HackathonEvent {
 
 const EventsPage = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [events, setEvents] = useState<HackathonEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -41,6 +44,24 @@ const EventsPage = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserHackathons = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_hackathons')
+        .select('hackathon_event_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      const eventIds = data?.map(item => item.hackathon_event_id) || [];
+      setJoinedEvents(eventIds);
+    } catch (error) {
+      console.error('Error fetching user hackathons:', error);
     }
   };
 
@@ -74,20 +95,93 @@ const EventsPage = () => {
     fetchEvents();
   }, []);
 
-  const handleJoinEvent = (eventId: string, eventTitle: string) => {
-    if (joinedEvents.includes(eventId)) {
-      setJoinedEvents(joinedEvents.filter(id => id !== eventId));
+  useEffect(() => {
+    if (user) {
+      fetchUserHackathons();
+    }
+  }, [user]);
+
+  const handleJoinEvent = async (eventId: string, eventTitle: string, mlhUrl: string) => {
+    if (!user) {
       toast({
-        title: "Left Event",
-        description: `You've left "${eventTitle}"`,
-        duration: 2000,
+        title: "Authentication Required",
+        description: "Please log in to join hackathons",
+        variant: "destructive",
       });
-    } else {
-      setJoinedEvents([...joinedEvents, eventId]);
+      return;
+    }
+
+    const isJoined = joinedEvents.includes(eventId);
+    
+    try {
+      if (isJoined) {
+        // Leave hackathon
+        const { error } = await supabase
+          .from('user_hackathons')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('hackathon_event_id', eventId);
+
+        if (error) throw error;
+        
+        setJoinedEvents(joinedEvents.filter(id => id !== eventId));
+        toast({
+          title: "Left Hackathon",
+          description: `You've left "${eventTitle}"`,
+          duration: 2000,
+        });
+      } else {
+        // Redirect to MLH page for application
+        if (mlhUrl) {
+          window.open(mlhUrl, '_blank', 'noopener,noreferrer');
+          
+          // After opening MLH page, ask user to confirm if they were accepted
+          setTimeout(() => {
+            const confirmed = window.confirm(
+              `Did you successfully register for "${eventTitle}" on the MLH website? Click OK only if you were accepted and registered.`
+            );
+            
+            if (confirmed) {
+              // Add to user_hackathons
+              supabase
+                .from('user_hackathons')
+                .insert({
+                  user_id: user.id,
+                  hackathon_event_id: eventId
+                })
+                .then(({ error }) => {
+                  if (error) {
+                    console.error('Error joining hackathon:', error);
+                    toast({
+                      title: "Error",
+                      description: "Failed to record hackathon participation",
+                      variant: "destructive",
+                    });
+                  } else {
+                    setJoinedEvents([...joinedEvents, eventId]);
+                    toast({
+                      title: "Hackathon Joined! 🎉",
+                      description: `Successfully recorded participation in "${eventTitle}"`,
+                      duration: 3000,
+                    });
+                  }
+                });
+            }
+          }, 2000);
+        } else {
+          toast({
+            title: "No Registration Link",
+            description: "MLH registration link not available for this event",
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error managing hackathon participation:', error);
       toast({
-        title: "Event Joined! 🎉",
-        description: `You're interested in "${eventTitle}"`,
-        duration: 3000,
+        title: "Error",
+        description: "Failed to update hackathon participation",
+        variant: "destructive",
       });
     }
   };
@@ -115,6 +209,21 @@ const EventsPage = () => {
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">MLH Hackathon Events</h1>
         <p className="text-gray-600 mb-4">Discover amazing hackathons from Major League Hacking</p>
+        
+        {/* Important Notice */}
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 max-w-4xl mx-auto">
+          <div className="flex items-center">
+            <AlertTriangle className="w-5 h-5 text-yellow-400 mr-2" />
+            <div className="text-left">
+              <p className="text-sm font-medium text-yellow-800">
+                <strong>IMPORTANT:</strong> Only click "Joined Hackathon" if you have been accepted and registered on the MLH website!
+              </p>
+              <p className="text-xs text-yellow-700 mt-1">
+                The button will redirect you to the official MLH registration page first.
+              </p>
+            </div>
+          </div>
+        </div>
         
         <button
           onClick={scrapeNewEvents}
@@ -151,6 +260,10 @@ const EventsPage = () => {
                       src={event.image_url || 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=250&fit=crop'}
                       alt={event.title}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to default image if event image fails to load
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=250&fit=crop';
+                      }}
                     />
                     <div className="absolute top-3 left-3">
                       <span className="bg-pink-600 text-white px-2 py-1 rounded-full text-xs font-medium">
@@ -202,14 +315,24 @@ const EventsPage = () => {
 
                     <div className="space-y-2">
                       <button
-                        onClick={() => handleJoinEvent(event.id, event.title)}
-                        className={`w-full py-3 rounded-lg font-medium transition-all duration-200 ${
+                        onClick={() => handleJoinEvent(event.id, event.title, event.mlh_url)}
+                        className={`w-full py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center ${
                           isJoined
                             ? 'bg-green-100 text-green-700 hover:bg-green-200'
                             : 'dating-gradient text-white hover:opacity-90'
                         }`}
                       >
-                        {isJoined ? 'Interested ✓' : 'Mark Interested'}
+                        {isJoined ? (
+                          <>
+                            <Users className="w-4 h-4 mr-2" />
+                            Joined Hackathon ✓
+                          </>
+                        ) : (
+                          <>
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Join Hackathon
+                          </>
+                        )}
                       </button>
                       
                       {event.mlh_url && (
