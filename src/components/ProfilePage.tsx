@@ -368,7 +368,8 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
   return (
     <div className="py-8 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">
@@ -385,7 +386,10 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           </div>
           {user && (
             <div className="flex space-x-3">
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
+              <button 
+                onClick={handleEditClick}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+              >
                 <Edit className="w-4 h-4" />
                 <span>Edit Profile</span>
               </button>
@@ -424,321 +428,357 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           </div>
         )}
 
-        <div className="bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-          {/* Header Section */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8">
-            <div className="flex items-start space-x-6">
-              <div className="relative">
-                <Avatar className="w-32 h-32 border-4 border-white">
-                  <AvatarImage
-                    src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'}
-                    alt="Profile main"
-                    className="object-cover"
+        {/* Main Profile Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Profile Info & Photo */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Profile Card */}
+            <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
+              {/* Profile Photo */}
+              <div className="text-center mb-6">
+                <div className="relative inline-block">
+                  <Avatar className="w-40 h-40 border-4 border-purple-500 mx-auto">
+                    <AvatarImage
+                      src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'}
+                      alt="Profile main"
+                      className="object-cover"
+                    />
+                    <AvatarFallback className="text-3xl">
+                      {profile.name?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  {isEditing && (
+                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                      <Camera className="w-8 h-8 text-white" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Basic Info */}
+              <div className="text-center mb-6">
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedProfile.name || ''}
+                    onChange={(e) => setEditedProfile({...editedProfile, name: e.target.value})}
+                    className="text-2xl font-bold bg-transparent border-b-2 border-purple-500 text-white placeholder-white/70 focus:border-purple-300 focus:outline-none text-center w-full mb-2"
+                    placeholder="Enter your name"
                   />
-                  <AvatarFallback className="text-2xl">
-                    {profile.name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                {isEditing && (
-                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-                    <Camera className="w-8 h-8 text-white" />
-                  </div>
+                ) : (
+                  <h2 className="text-2xl font-bold text-white mb-2">{profile.name || 'Anonymous'}</h2>
+                )}
+                
+                {isEditing ? (
+                  <input
+                    type="number"
+                    value={editedProfile.age || ''}
+                    onChange={(e) => setEditedProfile({...editedProfile, age: parseInt(e.target.value) || null})}
+                    className="text-lg bg-transparent border-b border-purple-500 text-gray-300 placeholder-white/70 focus:border-purple-300 focus:outline-none text-center w-24"
+                    placeholder="Age"
+                  />
+                ) : (
+                  <p className="text-lg text-gray-300">{profile.age ? `${profile.age} years old` : 'Age not specified'}</p>
                 )}
               </div>
-              
-              <div className="flex-1">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={editedProfile.name || ''}
-                        onChange={(e) => setEditedProfile({...editedProfile, name: e.target.value})}
-                        className="text-3xl font-bold bg-transparent border-b-2 border-white/30 text-white placeholder-white/70 focus:border-white focus:outline-none"
-                        placeholder="Enter your name"
-                      />
-                    ) : (
-                      <h1 className="text-3xl font-bold text-white">{profile.name || 'Anonymous'}</h1>
-                    )}
-                    
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        value={editedProfile.age || ''}
-                        onChange={(e) => setEditedProfile({...editedProfile, age: parseInt(e.target.value) || null})}
-                        className="text-lg bg-transparent border-b border-white/30 text-white/90 placeholder-white/70 focus:border-white focus:outline-none mt-1"
-                        placeholder="Age"
-                      />
-                    ) : (
-                      <p className="text-lg text-white/90">{profile.age ? `${profile.age} years old` : 'Age not specified'}</p>
-                    )}
-                  </div>
-                  
-                  <div className="flex space-x-3">
-                    {isEditing ? (
-                      <>
-                        <button
-                          onClick={handleCancel}
-                          className="px-4 py-2 border border-white/30 rounded-lg text-white hover:bg-white/10 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleSave}
-                          className="px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-gray-100 transition-colors flex items-center space-x-2"
-                        >
-                          <Save className="w-4 h-4" />
-                          <span>Save</span>
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={handleEditClick}
-                        className="px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-gray-100 transition-colors flex items-center space-x-2"
-                      >
-                        <Edit className="w-4 h-4" />
-                        <span>Edit Profile</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
 
+              {/* Bio */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-white mb-3">About</h3>
                 {isEditing ? (
                   <textarea
                     value={editedProfile.bio || ''}
                     onChange={(e) => setEditedProfile({...editedProfile, bio: e.target.value})}
-                    rows={3}
-                    className="w-full bg-transparent border border-white/30 rounded-lg p-3 text-white placeholder-white/70 focus:border-white focus:outline-none resize-none"
-                    placeholder="Full-stack developer passionate about building innovative solutions for social impact"
+                    rows={4}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none resize-none"
+                    placeholder="Tell people about yourself..."
                   />
                 ) : (
-                  <p className="text-white/90 leading-relaxed max-w-2xl">
-                    {profile.bio || 'Full-stack developer passionate about building innovative solutions for social impact'}
+                  <p className="text-gray-300 leading-relaxed">
+                    {profile.bio || 'No bio added yet'}
                   </p>
                 )}
-
-                {/* Social Links */}
-                <div className="flex space-x-4 mt-4">
-                  {isEditing ? (
-                    <>
-                      <div className="flex items-center space-x-2">
-                        <Github className="w-5 h-5 text-white" />
-                        <input
-                          type="url"
-                          value={editedProfile.github_url || ''}
-                          onChange={(e) => setEditedProfile({...editedProfile, github_url: e.target.value})}
-                          className="bg-transparent border-b border-white/30 text-white placeholder-white/70 focus:border-white focus:outline-none"
-                          placeholder="GitHub URL"
-                        />
-                        <button
-                          onClick={() => scrapeGithubData(editedProfile.github_url || '')}
-                          disabled={!editedProfile.github_url || scrapingGithub}
-                          className="px-2 py-1 bg-gray-700 text-white text-sm rounded hover:bg-gray-600 transition-colors disabled:opacity-50"
-                        >
-                          {scrapingGithub ? '...' : 'Import'}
-                        </button>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Linkedin className="w-5 h-5 text-white" />
-                        <input
-                          type="url"
-                          value={editedProfile.linkedin_url || ''}
-                          onChange={(e) => setEditedProfile({...editedProfile, linkedin_url: e.target.value})}
-                          className="bg-transparent border-b border-white/30 text-white placeholder-white/70 focus:border-white focus:outline-none"
-                          placeholder="LinkedIn URL"
-                        />
-                        <button
-                          onClick={() => scrapeLinkedinData(editedProfile.linkedin_url || '')}
-                          disabled={!editedProfile.linkedin_url || scrapingLinkedin}
-                          className="px-2 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
-                        >
-                          {scrapingLinkedin ? '...' : 'Import'}
-                        </button>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <ExternalLink className="w-5 h-5 text-white" />
-                        <input
-                          type="url"
-                          value={editedProfile.devpost_url || ''}
-                          onChange={(e) => setEditedProfile({...editedProfile, devpost_url: e.target.value})}
-                          className="bg-transparent border-b border-white/30 text-white placeholder-white/70 focus:border-white focus:outline-none"
-                          placeholder="DevPost URL"
-                        />
-                        <button
-                          onClick={() => scrapeDevpostData(editedProfile.devpost_url || '')}
-                          disabled={!editedProfile.devpost_url || scrapingDevpost}
-                          className="px-2 py-1 bg-orange-600 text-white text-sm rounded hover:bg-orange-700 transition-colors disabled:opacity-50"
-                        >
-                          {scrapingDevpost ? '...' : 'Import'}
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      {profile.github_url && (
-                        <a href={profile.github_url} target="_blank" rel="noopener noreferrer" 
-                           className="flex items-center space-x-1 px-3 py-1 bg-white/20 rounded-full text-white hover:bg-white/30 transition-colors">
-                          <Github className="w-4 h-4" />
-                          <span className="text-sm">GitHub</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                      {profile.linkedin_url && (
-                        <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer"
-                           className="flex items-center space-x-1 px-3 py-1 bg-white/20 rounded-full text-white hover:bg-white/30 transition-colors">
-                          <Linkedin className="w-4 h-4" />
-                          <span className="text-sm">LinkedIn</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                      {profile.devpost_url && (
-                        <a href={profile.devpost_url} target="_blank" rel="noopener noreferrer"
-                           className="flex items-center space-x-1 px-3 py-1 bg-white/20 rounded-full text-white hover:bg-white/30 transition-colors">
-                          <ExternalLink className="w-4 h-4" />
-                          <span className="text-sm">DevPost</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </>
-                  )}
-                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Content Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8">
-            {/* Skills & Technologies */}
-            <div className="bg-slate-700 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                <Building className="w-5 h-5 mr-2" />
-                Skills & Technologies
-              </h3>
-              <div className="space-y-3">
-                {['React', 'Python', 'Node.js', 'PostgreSQL', 'Figma', 'Machine Learning'].map((skill, index) => (
-                  <div key={skill} className="flex items-center justify-between">
-                    <span className="text-gray-300">{skill}</span>
-                    <span className="text-green-400 text-sm">Level {index % 3 + 1}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Hackathon Projects */}
-            <div className="bg-slate-700 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                <Star className="w-5 h-5 mr-2" />
-                Hackathon Projects
-              </h3>
-              <div className="space-y-4">
-                {profile.github_projects.slice(0, 3).map((project: any, index: number) => (
-                  <div key={index} className="border-l-4 border-blue-500 pl-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-semibold text-white">{project.name}</h4>
-                        <p className="text-sm text-gray-400 mt-1">{project.description}</p>
-                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                          {project.language && <span className="text-blue-400">{project.language}</span>}
-                          {project.stars !== undefined && <span className="flex items-center"><Star className="w-3 h-3 mr-1" />{project.stars}</span>}
-                        </div>
-                      </div>
-                      {project.url && (
-                        <a href={project.url} target="_blank" rel="noopener noreferrer" 
-                           className="text-blue-400 hover:text-blue-300">
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Work Experience */}
-            <div className="bg-slate-700 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                <Building className="w-5 h-5 mr-2" />
-                Work Experience
-              </h3>
-              <div className="space-y-4">
-                {profile.work_experience.map((job: any, index: number) => (
-                  <div key={index} className="border-l-4 border-green-500 pl-4">
-                    <h4 className="font-semibold text-white">{job.title}</h4>
-                    <p className="text-green-400 text-sm">{job.company}</p>
-                    <p className="text-gray-500 text-xs mb-2">{job.duration}</p>
-                    <p className="text-gray-300 text-sm">{job.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Education */}
-            <div className="bg-slate-700 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                <GraduationCap className="w-5 h-5 mr-2" />
-                Education
-              </h3>
-              <div className="space-y-4">
-                {profile.education_details.map((edu: any, index: number) => (
-                  <div key={index} className="border-l-4 border-purple-500 pl-4">
-                    <h4 className="font-semibold text-white">{edu.degree}</h4>
-                    <p className="text-purple-400 text-sm">{edu.school}</p>
-                    <p className="text-gray-500 text-xs mb-2">{edu.year}</p>
-                    <p className="text-gray-300 text-sm">{edu.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Location & Interests - Full Width */}
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-slate-700 rounded-xl p-6">
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+              {/* Location */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
                   <MapPin className="w-5 h-5 mr-2" />
                   Location
                 </h3>
                 {isEditing ? (
-                  <div className="flex space-x-2">
+                  <div className="space-y-2">
                     <input
                       type="text"
                       value={editedProfile.location || ''}
                       onChange={(e) => setEditedProfile({...editedProfile, location: e.target.value})}
-                      className="flex-1 px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       placeholder="Enter location manually"
                     />
                     <button
                       onClick={getCurrentLocation}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                      className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
                     >
                       <MapPin className="w-4 h-4" />
-                      <span>Use Current</span>
+                      <span>Use Current Location</span>
                     </button>
                   </div>
                 ) : (
                   <div className="flex items-center text-gray-300">
-                    <MapPin className="w-4 h-4 mr-2" />
                     <span>{profile.location || 'Location not set'}</span>
                   </div>
                 )}
               </div>
 
-              <div className="bg-slate-700 rounded-xl p-6">
-                <h3 className="text-xl font-semibold text-white mb-4">Interests</h3>
-                <div className="flex flex-wrap gap-2">
-                  {(profile.interests && profile.interests.length > 0) ? (
-                    profile.interests.map((interest, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-blue-600 text-white rounded-full text-sm font-medium"
+              {/* Action Buttons */}
+              {isEditing && (
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleCancel}
+                    className="flex-1 px-4 py-2 border border-slate-600 rounded-lg text-white hover:bg-slate-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Save</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Social Links Card */}
+            <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
+              <h3 className="text-lg font-semibold text-white mb-4">Social Links</h3>
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Github className="w-5 h-5 text-white" />
+                      <span className="text-white">GitHub</span>
+                    </div>
+                    <div className="flex space-x-2">
+                      <input
+                        type="url"
+                        value={editedProfile.github_url || ''}
+                        onChange={(e) => setEditedProfile({...editedProfile, github_url: e.target.value})}
+                        className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="GitHub URL"
+                      />
+                      <button
+                        onClick={() => scrapeGithubData(editedProfile.github_url || '')}
+                        disabled={!editedProfile.github_url || scrapingGithub}
+                        className="px-3 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50"
                       >
-                        {interest}
-                      </span>
-                    ))
+                        {scrapingGithub ? '...' : 'Import'}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Linkedin className="w-5 h-5 text-white" />
+                      <span className="text-white">LinkedIn</span>
+                    </div>
+                    <div className="flex space-x-2">
+                      <input
+                        type="url"
+                        value={editedProfile.linkedin_url || ''}
+                        onChange={(e) => setEditedProfile({...editedProfile, linkedin_url: e.target.value})}
+                        className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="LinkedIn URL"
+                      />
+                      <button
+                        onClick={() => scrapeLinkedinData(editedProfile.linkedin_url || '')}
+                        disabled={!editedProfile.linkedin_url || scrapingLinkedin}
+                        className="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                      >
+                        {scrapingLinkedin ? '...' : 'Import'}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <ExternalLink className="w-5 h-5 text-white" />
+                      <span className="text-white">DevPost</span>
+                    </div>
+                    <div className="flex space-x-2">
+                      <input
+                        type="url"
+                        value={editedProfile.devpost_url || ''}
+                        onChange={(e) => setEditedProfile({...editedProfile, devpost_url: e.target.value})}
+                        className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="DevPost URL"
+                      />
+                      <button
+                        onClick={() => scrapeDevpostData(editedProfile.devpost_url || '')}
+                        disabled={!editedProfile.devpost_url || scrapingDevpost}
+                        className="px-3 py-2 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50"
+                      >
+                        {scrapingDevpost ? '...' : 'Import'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {profile.github_url ? (
+                    <a href={profile.github_url} target="_blank" rel="noopener noreferrer" 
+                       className="flex items-center space-x-2 p-3 bg-slate-700 rounded-lg text-white hover:bg-slate-600 transition-colors">
+                      <Github className="w-5 h-5" />
+                      <span className="flex-1">GitHub</span>
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
                   ) : (
-                    <span className="text-gray-400 text-sm">No interests added yet</span>
+                    <div className="flex items-center space-x-2 p-3 bg-slate-700/50 rounded-lg text-gray-500">
+                      <Github className="w-5 h-5" />
+                      <span>No GitHub linked</span>
+                    </div>
+                  )}
+                  {profile.linkedin_url ? (
+                    <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer"
+                       className="flex items-center space-x-2 p-3 bg-slate-700 rounded-lg text-white hover:bg-slate-600 transition-colors">
+                      <Linkedin className="w-5 h-5" />
+                      <span className="flex-1">LinkedIn</span>
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  ) : (
+                    <div className="flex items-center space-x-2 p-3 bg-slate-700/50 rounded-lg text-gray-500">
+                      <Linkedin className="w-5 h-5" />
+                      <span>No LinkedIn linked</span>
+                    </div>
+                  )}
+                  {profile.devpost_url ? (
+                    <a href={profile.devpost_url} target="_blank" rel="noopener noreferrer"
+                       className="flex items-center space-x-2 p-3 bg-slate-700 rounded-lg text-white hover:bg-slate-600 transition-colors">
+                      <ExternalLink className="w-5 h-5" />
+                      <span className="flex-1">DevPost</span>
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  ) : (
+                    <div className="flex items-center space-x-2 p-3 bg-slate-700/50 rounded-lg text-gray-500">
+                      <ExternalLink className="w-5 h-5" />
+                      <span>No DevPost linked</span>
+                    </div>
                   )}
                 </div>
+              )}
+            </div>
+
+            {/* Interests Card */}
+            <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
+              <h3 className="text-lg font-semibold text-white mb-4">Interests</h3>
+              <div className="flex flex-wrap gap-2">
+                {(profile.interests && profile.interests.length > 0) ? (
+                  profile.interests.map((interest, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm font-medium"
+                    >
+                      {interest}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-400 text-sm">No interests added yet</span>
+                )}
               </div>
+            </div>
+          </div>
+
+          {/* Right Column - Experience & Projects */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Work Experience */}
+            <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
+              <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+                <Building className="w-6 h-6 mr-3" />
+                Work Experience
+              </h3>
+              {profile.work_experience && profile.work_experience.length > 0 ? (
+                <div className="space-y-6">
+                  {profile.work_experience.map((job: any, index: number) => (
+                    <div key={index} className="border-l-4 border-green-500 pl-6 pb-6 last:pb-0">
+                      <h4 className="text-lg font-semibold text-white">{job.title}</h4>
+                      <p className="text-green-400 font-medium">{job.company}</p>
+                      <p className="text-gray-500 text-sm mb-3">{job.duration}</p>
+                      <p className="text-gray-300">{job.description}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400">No work experience added yet</p>
+              )}
+            </div>
+
+            {/* Education */}
+            <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
+              <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+                <GraduationCap className="w-6 h-6 mr-3" />
+                Education
+              </h3>
+              {profile.education_details && profile.education_details.length > 0 ? (
+                <div className="space-y-6">
+                  {profile.education_details.map((edu: any, index: number) => (
+                    <div key={index} className="border-l-4 border-purple-500 pl-6 pb-6 last:pb-0">
+                      <h4 className="text-lg font-semibold text-white">{edu.degree}</h4>
+                      <p className="text-purple-400 font-medium">{edu.school}</p>
+                      <p className="text-gray-500 text-sm mb-3">{edu.year}</p>
+                      <p className="text-gray-300">{edu.description}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400">No education details added yet</p>
+              )}
+            </div>
+
+            {/* Projects */}
+            <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl">
+              <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+                <Star className="w-6 h-6 mr-3" />
+                Projects & Repositories
+              </h3>
+              {profile.github_projects && profile.github_projects.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {profile.github_projects.map((project: any, index: number) => (
+                    <div key={index} className="bg-slate-700 rounded-lg p-4 hover:bg-slate-600 transition-colors">
+                      <div className="flex items-start justify-between mb-3">
+                        <h4 className="font-semibold text-white text-lg">{project.name}</h4>
+                        {project.url && (
+                          <a href={project.url} target="_blank" rel="noopener noreferrer" 
+                             className="text-blue-400 hover:text-blue-300">
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                      <p className="text-gray-300 text-sm mb-3">{project.description}</p>
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center space-x-3">
+                          {project.language && (
+                            <span className="px-2 py-1 bg-blue-600 text-white rounded">
+                              {project.language}
+                            </span>
+                          )}
+                          {project.stars !== undefined && (
+                            <span className="flex items-center text-yellow-400">
+                              <Star className="w-3 h-3 mr-1" />
+                              {project.stars}
+                            </span>
+                          )}
+                        </div>
+                        {project.updated_at && (
+                          <span className="text-gray-500">
+                            Updated {new Date(project.updated_at).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400">No projects found. Connect your GitHub to import repositories automatically.</p>
+              )}
             </div>
           </div>
         </div>
