@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { MapPin, Github, Linkedin, ExternalLink } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -23,7 +22,6 @@ interface ProfileDisplayProps {
 }
 
 const ProfileDisplay = ({ profile, onSwipe }: ProfileDisplayProps) => {
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
@@ -85,18 +83,6 @@ const ProfileDisplay = ({ profile, onSwipe }: ProfileDisplayProps) => {
     }
   };
 
-  const nextPhoto = () => {
-    setCurrentPhotoIndex((prev) => 
-      prev === profile.photos.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const prevPhoto = () => {
-    setCurrentPhotoIndex((prev) => 
-      prev === 0 ? profile.photos.length - 1 : prev - 1
-    );
-  };
-
   const cardStyle = {
     transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${dragOffset.x * 0.1}deg) ${isFlipped ? 'rotateY(180deg)' : ''}`,
     transition: isDragging ? 'none' : 'transform 0.3s ease-out',
@@ -120,44 +106,14 @@ const ProfileDisplay = ({ profile, onSwipe }: ProfileDisplayProps) => {
         {/* Front of card */}
         <div className={`${isFlipped ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`} style={{ backfaceVisibility: 'hidden' }}>
           <div className="flex h-96">
-            <div className="w-1/2 relative">
-              <img
-                src={profile.photos[currentPhotoIndex]}
-                alt={`${profile.name} photo ${currentPhotoIndex + 1}`}
-                className="w-full h-full object-cover"
-              />
-              
-              <div className="absolute top-4 left-4 right-4 flex space-x-1">
-                {profile.photos.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`flex-1 h-1 rounded-full ${
-                      index === currentPhotoIndex ? 'bg-white' : 'bg-white/30'
-                    }`}
-                  />
-                ))}
-              </div>
-              
-              <button
-                onClick={prevPhoto}
-                className="absolute left-2 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-black/20 text-white rounded-full flex items-center justify-center hover:bg-black/40 transition-colors"
-              >
-                ←
-              </button>
-              <button
-                onClick={nextPhoto}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-black/20 text-white rounded-full flex items-center justify-center hover:bg-black/40 transition-colors"
-              >
-                →
-              </button>
-
-              <div className="absolute bottom-4 left-4 flex space-x-2">
-                {profile.photos.slice(1, 4).map((photo, index) => (
-                  <Avatar key={index + 1} className="w-12 h-12 border-2 border-white">
-                    <AvatarImage src={photo} alt={`${profile.name} ${index + 2}`} />
-                    <AvatarFallback>{index + 2}</AvatarFallback>
-                  </Avatar>
-                ))}
+            {/* Profile photo - circular and 1/4 of card */}
+            <div className="w-1/4 p-8 flex items-center justify-center">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200">
+                <img
+                  src={profile.photos[0]}
+                  alt={`${profile.name}`}
+                  className="w-full h-full object-cover"
+                />
               </div>
 
               {isDragging && (
@@ -180,7 +136,8 @@ const ProfileDisplay = ({ profile, onSwipe }: ProfileDisplayProps) => {
               )}
             </div>
 
-            <div className="w-1/2 p-8 flex flex-col justify-between">
+            {/* Profile details - 3/4 of card */}
+            <div className="w-3/4 p-8 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -205,6 +162,29 @@ const ProfileDisplay = ({ profile, onSwipe }: ProfileDisplayProps) => {
                     </span>
                   ))}
                 </div>
+
+                {/* GitHub Projects Preview */}
+                {profile.github_projects && profile.github_projects.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-800 mb-3">Recent Projects</h3>
+                    <div className="space-y-2">
+                      {profile.github_projects.slice(0, 2).map((project: any, index: number) => (
+                        <div key={index} className="bg-gray-50 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-medium text-gray-800 text-sm">{project.name}</h4>
+                            <span className="text-xs text-gray-500 flex items-center">
+                              ⭐ {project.stars}
+                            </span>
+                          </div>
+                          <p className="text-gray-600 text-xs mb-1">{project.description}</p>
+                          <span className="inline-block text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                            {project.language}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="text-center text-gray-500">

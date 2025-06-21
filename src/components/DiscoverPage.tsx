@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import ProfileDisplay from './discover/ProfileDisplay';
 import SwipeButtons from './discover/SwipeButtons';
@@ -139,11 +138,7 @@ const DiscoverPage = () => {
     if (currentIndex < profiles.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      toast({
-        title: "No more profiles",
-        description: "Check back later for more potential matches!",
-        duration: 3000,
-      });
+      setCurrentIndex(0); // Loop back to start instead of showing empty state
     }
   };
 
@@ -154,30 +149,7 @@ const DiscoverPage = () => {
           <div className="dating-gradient w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           </div>
-          <p className="text-gray-600">Loading amazing profiles for you...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (currentIndex >= profiles.length) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="w-24 h-24 dating-gradient rounded-full mx-auto mb-6 flex items-center justify-center">
-            <span className="text-4xl">✨</span>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">You're all caught up!</h2>
-          <p className="text-gray-600 mb-6">Check back later for more potential matches</p>
-          <button
-            onClick={() => {
-              setCurrentIndex(0);
-              setProfiles([...sampleProfiles]);
-            }}
-            className="dating-gradient text-white px-6 py-3 rounded-full font-medium hover:opacity-90 transition-opacity"
-          >
-            Start Over
-          </button>
+          <p className="text-gray-600">Loading profiles...</p>
         </div>
       </div>
     );
@@ -186,7 +158,7 @@ const DiscoverPage = () => {
   return (
     <div className="py-8">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Discover Amazing People</h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">Find Your Hackathon Teammates</h1>
         <p className="text-gray-600">
           Profile {currentIndex + 1} of {profiles.length}
         </p>
