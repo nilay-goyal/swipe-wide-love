@@ -9,36 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      data_test: {
-        Row: {
-          github: string | null
-          id: string
-          linkedin: string | null
-          name: string | null
-          school: string | null
-          skills: string | null
-          year: string | null
-        }
-        Insert: {
-          github?: string | null
-          id: string
-          linkedin?: string | null
-          name?: string | null
-          school?: string | null
-          skills?: string | null
-          year?: string | null
-        }
-        Update: {
-          github?: string | null
-          id?: string
-          linkedin?: string | null
-          name?: string | null
-          school?: string | null
-          skills?: string | null
-          year?: string | null
-        }
-        Relationships: []
-      }
       hackathon_events: {
         Row: {
           application_deadline: string | null
@@ -144,6 +114,66 @@ export type Database = {
           photos?: string[] | null
           updated_at?: string
           work_experience?: Json | null
+        }
+        Relationships: []
+      }
+      test_data: {
+        Row: {
+          backend: number | null
+          cyber: number | null
+          devpost: string | null
+          frontend: number | null
+          github: string | null
+          hardware: number | null
+          id: string
+          linkedin: string | null
+          major: string | null
+          management: number | null
+          name: string | null
+          pitching: number | null
+          school: string | null
+          skills: string | null
+          timestamp: string | null
+          uiux: number | null
+          year: string | null
+        }
+        Insert: {
+          backend?: number | null
+          cyber?: number | null
+          devpost?: string | null
+          frontend?: number | null
+          github?: string | null
+          hardware?: number | null
+          id: string
+          linkedin?: string | null
+          major?: string | null
+          management?: number | null
+          name?: string | null
+          pitching?: number | null
+          school?: string | null
+          skills?: string | null
+          timestamp?: string | null
+          uiux?: number | null
+          year?: string | null
+        }
+        Update: {
+          backend?: number | null
+          cyber?: number | null
+          devpost?: string | null
+          frontend?: number | null
+          github?: string | null
+          hardware?: number | null
+          id?: string
+          linkedin?: string | null
+          major?: string | null
+          management?: number | null
+          name?: string | null
+          pitching?: number | null
+          school?: string | null
+          skills?: string | null
+          timestamp?: string | null
+          uiux?: number | null
+          year?: string | null
         }
         Relationships: []
       }
