@@ -9,57 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      data: {
+      data_test: {
         Row: {
-          "Backend Dev": number | null
-          "Check the skills you're comfortable with:": string | null
-          Cybersecurity: number | null
-          "Enter name:": string
-          "Enter the major you're pursuing:": string | null
-          "Enter the school/university you're attending:": string | null
-          "Enter your year:": string | null
-          "Frontend Dev": number | null
-          "Hardware / Arduino / Raspberry Pi": number | null
-          "Pitching / Public Speaking": number | null
-          "Project Management (Notion, Trello, etc.)": number | null
-          "Provide a link to your Devpost profile:": string | null
-          "Provide a link to your GitHub:": string | null
-          Timestamp: string | null
-          "UI/UX Design (Figma, Adobe XD)": number | null
+          github: string | null
+          id: string
+          linkedin: string | null
+          name: string | null
+          school: string | null
+          skills: string | null
+          year: string | null
         }
         Insert: {
-          "Backend Dev"?: number | null
-          "Check the skills you're comfortable with:"?: string | null
-          Cybersecurity?: number | null
-          "Enter name:": string
-          "Enter the major you're pursuing:"?: string | null
-          "Enter the school/university you're attending:"?: string | null
-          "Enter your year:"?: string | null
-          "Frontend Dev"?: number | null
-          "Hardware / Arduino / Raspberry Pi"?: number | null
-          "Pitching / Public Speaking"?: number | null
-          "Project Management (Notion, Trello, etc.)"?: number | null
-          "Provide a link to your Devpost profile:"?: string | null
-          "Provide a link to your GitHub:"?: string | null
-          Timestamp?: string | null
-          "UI/UX Design (Figma, Adobe XD)"?: number | null
+          github?: string | null
+          id: string
+          linkedin?: string | null
+          name?: string | null
+          school?: string | null
+          skills?: string | null
+          year?: string | null
         }
         Update: {
-          "Backend Dev"?: number | null
-          "Check the skills you're comfortable with:"?: string | null
-          Cybersecurity?: number | null
-          "Enter name:"?: string
-          "Enter the major you're pursuing:"?: string | null
-          "Enter the school/university you're attending:"?: string | null
-          "Enter your year:"?: string | null
-          "Frontend Dev"?: number | null
-          "Hardware / Arduino / Raspberry Pi"?: number | null
-          "Pitching / Public Speaking"?: number | null
-          "Project Management (Notion, Trello, etc.)"?: number | null
-          "Provide a link to your Devpost profile:"?: string | null
-          "Provide a link to your GitHub:"?: string | null
-          Timestamp?: string | null
-          "UI/UX Design (Figma, Adobe XD)"?: number | null
+          github?: string | null
+          id?: string
+          linkedin?: string | null
+          name?: string | null
+          school?: string | null
+          skills?: string | null
+          year?: string | null
         }
         Relationships: []
       }

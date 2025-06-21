@@ -51,14 +51,16 @@ const EventsPage = () => {
     if (!user) return;
     
     try {
+      // Use raw SQL query since the table might not be in types yet
       const { data, error } = await supabase
-        .from('user_hackathons')
-        .select('hackathon_event_id')
-        .eq('user_id', user.id);
+        .rpc('get_user_hackathons', { user_uuid: user.id });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching user hackathons:', error);
+        return;
+      }
       
-      const eventIds = data?.map(item => item.hackathon_event_id) || [];
+      const eventIds = data?.map((item: any) => item.hackathon_event_id) || [];
       setJoinedEvents(eventIds);
     } catch (error) {
       console.error('Error fetching user hackathons:', error);
@@ -115,12 +117,12 @@ const EventsPage = () => {
     
     try {
       if (isJoined) {
-        // Leave hackathon
+        // Leave hackathon - use RPC call
         const { error } = await supabase
-          .from('user_hackathons')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('hackathon_event_id', eventId);
+          .rpc('leave_hackathon', { 
+            user_uuid: user.id, 
+            event_uuid: eventId 
+          });
 
         if (error) throw error;
         
@@ -142,12 +144,11 @@ const EventsPage = () => {
             );
             
             if (confirmed) {
-              // Add to user_hackathons
+              // Add to user_hackathons using RPC call
               supabase
-                .from('user_hackathons')
-                .insert({
-                  user_id: user.id,
-                  hackathon_event_id: eventId
+                .rpc('join_hackathon', {
+                  user_uuid: user.id,
+                  event_uuid: eventId
                 })
                 .then(({ error }) => {
                   if (error) {
