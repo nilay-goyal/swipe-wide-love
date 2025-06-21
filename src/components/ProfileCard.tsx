@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Heart, X, Star, MapPin } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { MapPin } from 'lucide-react';
 
 interface Profile {
   id: number;
@@ -14,19 +14,65 @@ interface Profile {
 
 interface ProfileCardProps {
   profile: Profile;
-  onSwipe: (direction: 'left' | 'right') => void;
+  onSwipe: (direction: 'up' | 'down') => void;
 }
 
 const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  const handleSwipe = (direction: 'left' | 'right') => {
-    setIsAnimating(true);
-    setTimeout(() => {
-      onSwipe(direction);
-      setIsAnimating(false);
-    }, 300);
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartPos({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    
+    const deltaX = e.clientX - startPos.x;
+    const deltaY = e.clientY - startPos.y;
+    setDragOffset({ x: deltaX, y: deltaY });
+  };
+
+  const handleMouseUp = () => {
+    if (!isDragging) return;
+    
+    const threshold = 100;
+    
+    if (Math.abs(dragOffset.y) > threshold) {
+      if (dragOffset.y < -threshold) {
+        // Swiped up - accept/like
+        onSwipe('up');
+      } else if (dragOffset.y > threshold) {
+        // Swiped down - decline/reject
+        onSwipe('down');
+      }
+    }
+    
+    setIsDragging(false);
+    setDragOffset({ x: 0, y: 0 });
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setIsDragging(true);
+    setStartPos({ x: touch.clientX, y: touch.clientY });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - startPos.x;
+    const deltaY = touch.clientY - startPos.y;
+    setDragOffset({ x: deltaX, y: deltaY });
+  };
+
+  const handleTouchEnd = () => {
+    handleMouseUp();
   };
 
   const nextPhoto = () => {
@@ -41,9 +87,24 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
     );
   };
 
+  const cardStyle = {
+    transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${dragOffset.x * 0.1}deg)`,
+    transition: isDragging ? 'none' : 'transform 0.3s ease-out',
+  };
+
   return (
-    <div className={`w-full max-w-4xl mx-auto ${isAnimating ? 'pointer-events-none' : ''}`}>
-      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden card-hover">
+    <div className="w-full max-w-4xl mx-auto select-none">
+      <div 
+        ref={cardRef}
+        className="bg-white rounded-3xl shadow-2xl overflow-hidden card-hover cursor-grab active:cursor-grabbing"
+        style={cardStyle}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className="flex h-96">
           {/* Photo Section */}
           <div className="w-1/2 relative">
@@ -78,6 +139,26 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
             >
               →
             </button>
+
+            {/* Swipe Indicators */}
+            {isDragging && (
+              <>
+                {dragOffset.y < -50 && (
+                  <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
+                    <div className="bg-green-500 text-white px-6 py-3 rounded-full font-bold text-xl">
+                      LIKE ❤️
+                    </div>
+                  </div>
+                )}
+                {dragOffset.y > 50 && (
+                  <div className="absolute inset-0 bg-red-500/20 flex items-center justify-center">
+                    <div className="bg-red-500 text-white px-6 py-3 rounded-full font-bold text-xl">
+                      PASS ✕
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* Info Section */}
@@ -109,25 +190,10 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-center space-x-6">
-              <button
-                onClick={() => handleSwipe('left')}
-                className="w-16 h-16 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors group"
-              >
-                <X className="w-8 h-8 text-gray-600 group-hover:text-gray-800" />
-              </button>
-              
-              <button className="w-16 h-16 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors group">
-                <Star className="w-8 h-8 text-blue-600 group-hover:text-blue-800" />
-              </button>
-              
-              <button
-                onClick={() => handleSwipe('right')}
-                className="w-16 h-16 dating-gradient hover:opacity-90 rounded-full flex items-center justify-center transition-opacity group"
-              >
-                <Heart className="w-8 h-8 text-white pulse-heart" />
-              </button>
+            {/* Swipe Instructions */}
+            <div className="text-center text-gray-500">
+              <p className="text-sm">Swipe up to like ❤️</p>
+              <p className="text-sm">Swipe down to pass ✕</p>
             </div>
           </div>
         </div>

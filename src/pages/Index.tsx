@@ -28,16 +28,16 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-50 pb-24">
+      <main className="container mx-auto px-4 pt-8">
+        {renderCurrentPage()}
+      </main>
+      
       <Navigation 
         currentPage={currentPage} 
         onPageChange={setCurrentPage}
         messageCount={3}
       />
-      
-      <main className="container mx-auto px-4">
-        {renderCurrentPage()}
-      </main>
     </div>
   );
 };
