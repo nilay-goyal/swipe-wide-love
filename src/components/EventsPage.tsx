@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,19 +52,10 @@ const EventsPage = () => {
     if (!user) return;
     
     try {
-      // Use rpc or raw query since the table might not be in types yet
       const { data, error } = await supabase
-        .rpc('get_user_participations', { user_uuid: user.id })
-        .then(result => {
-          if (result.error && result.error.code === '42883') {
-            // Function doesn't exist, fallback to direct query
-            return supabase
-              .from('hackathon_participants' as any)
-              .select('event_id')
-              .eq('user_id', user.id);
-          }
-          return result;
-        });
+        .from('hackathon_participants' as any)
+        .select('event_id')
+        .eq('user_id', user.id);
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching user participation:', error);
