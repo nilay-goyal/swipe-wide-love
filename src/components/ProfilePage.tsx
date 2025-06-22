@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 interface UserProfile {
   id: string;
@@ -75,7 +76,6 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
       if (error) {
         console.error('Error fetching profile:', error);
         if (error.code === 'PGRST116') {
-          // Profile doesn't exist yet - this should not happen with the trigger, but let's handle it
           console.log('No profile found, creating basic profile');
           await createBasicProfile();
           return;
@@ -131,7 +131,6 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
       if (error) throw error;
       
-      // Fetch the newly created profile
       await fetchProfile();
     } catch (error: any) {
       console.error('Error creating basic profile:', error);
@@ -174,7 +173,6 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   const handleSave = async () => {
     if (!user) return;
 
-    // Validate required fields
     if (!validateRequiredFields()) {
       toast({
         title: "Please complete required fields",
@@ -339,56 +337,74 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           </div>
         )}
 
-        {/* Basic Profile Info */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-6">
-          <div className="text-center mb-6">
-            <div className="relative inline-block">
-              <Avatar className="w-40 h-40 border-4 border-pink-200 mx-auto">
-                <AvatarImage
-                  src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'}
-                  alt="Profile main"
-                  className="object-cover"
-                />
-                <AvatarFallback className="text-3xl bg-pink-100 text-pink-600">
-                  {profile.name?.charAt(0) || 'U'}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column */}
+          <div className="space-y-6">
+            {/* Basic Profile Info */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center mb-6">
+                  <div className="relative inline-block">
+                    <Avatar className="w-40 h-40 border-4 border-pink-200 mx-auto">
+                      <AvatarImage
+                        src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'}
+                        alt="Profile main"
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="text-3xl bg-pink-100 text-pink-600">
+                        {profile.name?.charAt(0) || 'A'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-800 mt-4">
+                    {profile.name || 'Anonymous'}
+                  </h2>
+                  <p className="text-gray-600">
+                    {profile.age ? `Age ${profile.age}` : 'Age not specified'}
+                  </p>
+                </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Basic Info */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
-              
-              {isEditing ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={editedProfile.name || ''}
-                      onChange={(e) => setEditedProfile({...editedProfile, name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      placeholder="Your name"
-                    />
+                {isEditing ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={editedProfile.name || ''}
+                        onChange={(e) => setEditedProfile({...editedProfile, name: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder="Your name"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Age <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        value={editedProfile.age || ''}
+                        onChange={(e) => setEditedProfile({...editedProfile, age: parseInt(e.target.value) || null})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder="Your age"
+                      />
+                    </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Age <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={editedProfile.age || ''}
-                      onChange={(e) => setEditedProfile({...editedProfile, age: parseInt(e.target.value) || null})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      placeholder="Your age"
-                    />
-                  </div>
-                  
+                ) : null}
+              </CardContent>
+            </Card>
+
+            {/* About */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <span>About</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Bio <span className="text-red-500">*</span>
@@ -401,18 +417,135 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                       placeholder="Tell people about yourself..."
                     />
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                    <input
-                      type="text"
-                      value={editedProfile.location || ''}
-                      onChange={(e) => setEditedProfile({...editedProfile, location: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      placeholder="Your location"
-                    />
+                ) : (
+                  <p className="text-gray-700">
+                    {profile.bio || 'No bio added yet'}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Location */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <MapPin className="w-5 h-5 text-pink-500" />
+                  <span>Location</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedProfile.location || ''}
+                    onChange={(e) => setEditedProfile({...editedProfile, location: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    placeholder="Your location"
+                  />
+                ) : (
+                  <p className="text-gray-700">
+                    {profile.location || 'Location not set'}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Social Links */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Social Links</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">GitHub URL</label>
+                      <input
+                        type="url"
+                        value={editedProfile.github_url || ''}
+                        onChange={(e) => setEditedProfile({...editedProfile, github_url: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder="https://github.com/username"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn URL</label>
+                      <input
+                        type="url"
+                        value={editedProfile.linkedin_url || ''}
+                        onChange={(e) => setEditedProfile({...editedProfile, linkedin_url: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder="https://linkedin.com/in/username"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">DevPost URL</label>
+                      <input
+                        type="url"
+                        value={editedProfile.devpost_url || ''}
+                        onChange={(e) => setEditedProfile({...editedProfile, devpost_url: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder="https://devpost.com/username"
+                      />
+                    </div>
                   </div>
-                  
+                ) : (
+                  <div className="space-y-3">
+                    {profile.github_url ? (
+                      <a href={profile.github_url} target="_blank" rel="noopener noreferrer" 
+                         className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+                        <Github className="w-4 h-4" />
+                        <span>GitHub</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : (
+                      <div className="flex items-center space-x-2 p-2 bg-gray-50/50 rounded-lg text-gray-400">
+                        <Github className="w-4 h-4" />
+                        <span>No GitHub linked</span>
+                      </div>
+                    )}
+                    
+                    {profile.linkedin_url ? (
+                      <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer"
+                         className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+                        <Linkedin className="w-4 h-4" />
+                        <span>LinkedIn</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : (
+                      <div className="flex items-center space-x-2 p-2 bg-gray-50/50 rounded-lg text-gray-400">
+                        <Linkedin className="w-4 h-4" />
+                        <span>No LinkedIn linked</span>
+                      </div>
+                    )}
+                    
+                    {profile.devpost_url ? (
+                      <a href={profile.devpost_url} target="_blank" rel="noopener noreferrer"
+                         className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+                        <ExternalLink className="w-4 h-4" />
+                        <span>DevPost</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : (
+                      <div className="flex items-center space-x-2 p-2 bg-gray-50/50 rounded-lg text-gray-400">
+                        <ExternalLink className="w-4 h-4" />
+                        <span>No DevPost linked</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Interests */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Interests</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Interests</label>
                     <textarea
@@ -423,131 +556,122 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                       placeholder="Enter interests separated by commas..."
                     />
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-sm font-medium text-gray-500">Name:</span>
-                    <p className="text-gray-800">{profile.name || 'Not specified'}</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {(profile.interests && profile.interests.length > 0) ? (
+                      profile.interests.map((interest, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-pink-100 text-pink-700 rounded text-sm"
+                        >
+                          {interest}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-gray-400 text-sm">No interests added yet</span>
+                    )}
                   </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-500">Age:</span>
-                    <p className="text-gray-800">{profile.age ? `${profile.age} years old` : 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-500">Bio:</span>
-                    <p className="text-gray-800">{profile.bio || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-500">Location:</span>
-                    <p className="text-gray-800">{profile.location || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-500">Interests:</span>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {(profile.interests && profile.interests.length > 0) ? (
-                        profile.interests.map((interest, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-pink-100 text-pink-700 rounded text-sm"
-                          >
-                            {interest}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-gray-400 text-sm">No interests added</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-            {/* Social Links */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Social Links</h3>
-              
-              {isEditing ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">GitHub URL</label>
-                    <input
-                      type="url"
-                      value={editedProfile.github_url || ''}
-                      onChange={(e) => setEditedProfile({...editedProfile, github_url: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      placeholder="https://github.com/username"
-                    />
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Work Experience */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Building className="w-5 h-5 text-pink-500" />
+                  <span>Work Experience</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {profile.work_experience && profile.work_experience.length > 0 ? (
+                  <div className="space-y-4">
+                    {profile.work_experience.map((job: any, index: number) => (
+                      <div key={index} className="border-l-4 border-pink-200 pl-4">
+                        <h4 className="font-semibold text-gray-800">{job.title}</h4>
+                        <p className="text-gray-600">{job.company}</p>
+                        <p className="text-sm text-gray-500">{job.duration}</p>
+                        {job.description && (
+                          <p className="text-sm text-gray-700 mt-1">{job.description}</p>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn URL</label>
-                    <input
-                      type="url"
-                      value={editedProfile.linkedin_url || ''}
-                      onChange={(e) => setEditedProfile({...editedProfile, linkedin_url: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      placeholder="https://linkedin.com/in/username"
-                    />
+                ) : (
+                  <p className="text-gray-400 text-center py-4">No work experience added yet</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Education */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <GraduationCap className="w-5 h-5 text-purple-500" />
+                  <span>Education</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {profile.education_details && profile.education_details.length > 0 ? (
+                  <div className="space-y-4">
+                    {profile.education_details.map((edu: any, index: number) => (
+                      <div key={index} className="border-l-4 border-purple-200 pl-4">
+                        <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
+                        <p className="text-gray-600">{edu.school}</p>
+                        <p className="text-sm text-gray-500">{edu.year}</p>
+                        {edu.description && (
+                          <p className="text-sm text-gray-700 mt-1">{edu.description}</p>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">DevPost URL</label>
-                    <input
-                      type="url"
-                      value={editedProfile.devpost_url || ''}
-                      onChange={(e) => setEditedProfile({...editedProfile, devpost_url: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      placeholder="https://devpost.com/username"
-                    />
+                ) : (
+                  <p className="text-gray-400 text-center py-4">No education details added yet</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Projects & Repositories */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Star className="w-5 h-5 text-yellow-500" />
+                  <span>Projects & Repositories</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {profile.github_projects && profile.github_projects.length > 0 ? (
+                  <div className="space-y-4">
+                    {profile.github_projects.map((project: any, index: number) => (
+                      <div key={index} className="bg-gray-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-gray-800">{project.name}</h4>
+                          <span className="text-sm text-gray-500 flex items-center">
+                            <Star className="w-3 h-3 mr-1" />
+                            {project.stars || 0}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 text-sm mb-2">
+                          {project.description || 'No description available'}
+                        </p>
+                        {project.language && (
+                          <span className="inline-block text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                            {project.language}
+                          </span>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {profile.github_url ? (
-                    <a href={profile.github_url} target="_blank" rel="noopener noreferrer" 
-                       className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
-                      <Github className="w-4 h-4" />
-                      <span>GitHub</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  ) : (
-                    <div className="flex items-center space-x-2 p-2 bg-gray-50/50 rounded-lg text-gray-400">
-                      <Github className="w-4 h-4" />
-                      <span>No GitHub linked</span>
-                    </div>
-                  )}
-                  
-                  {profile.linkedin_url ? (
-                    <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
-                      <Linkedin className="w-4 h-4" />
-                      <span>LinkedIn</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  ) : (
-                    <div className="flex items-center space-x-2 p-2 bg-gray-50/50 rounded-lg text-gray-400">
-                      <Linkedin className="w-4 h-4" />
-                      <span>No LinkedIn linked</span>
-                    </div>
-                  )}
-                  
-                  {profile.devpost_url ? (
-                    <a href={profile.devpost_url} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
-                      <ExternalLink className="w-4 h-4" />
-                      <span>DevPost</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  ) : (
-                    <div className="flex items-center space-x-2 p-2 bg-gray-50/50 rounded-lg text-gray-400">
-                      <ExternalLink className="w-4 h-4" />
-                      <span>No DevPost linked</span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400 mb-2">No projects found. Connect your GitHub to import repositories automatically.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
