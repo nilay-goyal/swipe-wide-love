@@ -5,6 +5,10 @@ export interface ScrapedData {
   github_projects?: any[];
   work_experience?: any[];
   education_details?: any[];
+  // New fields for hackathon info
+  major?: string;
+  school?: string;
+  year?: string;
 }
 
 export const scrapeSocialProfiles = async (urls: {
@@ -17,7 +21,10 @@ export const scrapeSocialProfiles = async (urls: {
   const scrapedData: ScrapedData = {
     github_projects: [],
     work_experience: [],
-    education_details: []
+    education_details: [],
+    major: undefined,
+    school: undefined,
+    year: undefined
   };
 
   try {
@@ -39,6 +46,13 @@ export const scrapeSocialProfiles = async (urls: {
       if (linkedinData) {
         scrapedData.work_experience = linkedinData.work_experience || [];
         scrapedData.education_details = linkedinData.education_details || [];
+        // Extract education info for hackathon fields
+        if (linkedinData.education_details && linkedinData.education_details.length > 0) {
+          const latestEducation = linkedinData.education_details[0];
+          scrapedData.major = extractMajorFromDegree(latestEducation.degree);
+          scrapedData.school = latestEducation.school;
+          scrapedData.year = extractYearFromEducation(latestEducation.year);
+        }
       }
     }
 
@@ -58,6 +72,50 @@ export const scrapeSocialProfiles = async (urls: {
     console.error('Error scraping social profiles:', error);
     throw new Error('Failed to import data from social profiles. Please check your URLs and try again.');
   }
+};
+
+const extractMajorFromDegree = (degree: string): string | undefined => {
+  if (!degree) return undefined;
+  
+  const lowerDegree = degree.toLowerCase();
+  if (lowerDegree.includes('computer science') || lowerDegree.includes('cs')) {
+    return 'Computer Science';
+  } else if (lowerDegree.includes('computer engineering')) {
+    return 'Computer Engineering';
+  } else if (lowerDegree.includes('software engineering')) {
+    return 'Software Engineering';
+  } else if (lowerDegree.includes('electrical engineering')) {
+    return 'Electrical Engineering';
+  }
+  return 'Other';
+};
+
+const extractYearFromEducation = (year: string): string | undefined => {
+  if (!year) return undefined;
+  
+  const currentYear = new Date().getFullYear();
+  const yearMatch = year.match(/(\d{4})/);
+  
+  if (yearMatch) {
+    const gradYear = parseInt(yearMatch[1]);
+    const yearsSinceGrad = currentYear - gradYear;
+    
+    if (yearsSinceGrad <= 0) {
+      if (yearsSinceGrad >= -4) return `${Math.abs(yearsSinceGrad) + 1}${getOrdinalSuffix(Math.abs(yearsSinceGrad) + 1)} year`;
+      return 'Graduate';
+    } else if (yearsSinceGrad <= 2) {
+      return 'Graduate';
+    }
+  }
+  
+  return 'Other';
+};
+
+const getOrdinalSuffix = (num: number): string => {
+  if (num === 1) return 'st';
+  if (num === 2) return 'nd';
+  if (num === 3) return 'rd';
+  return 'th';
 };
 
 const scrapeGitHub = async (githubUrl: string): Promise<any[]> => {
@@ -101,7 +159,8 @@ const scrapeGitHub = async (githubUrl: string): Promise<any[]> => {
       language: repo.language,
       stars: repo.stargazers_count,
       url: repo.html_url,
-      updated_at: repo.updated_at
+      updated_at: repo.updated_at,
+      type: 'github'
     }));
     
     console.log('Formatted GitHub repos:', formattedRepos);
@@ -118,22 +177,28 @@ const scrapeLinkedIn = async (linkedinUrl: string): Promise<any> => {
     // In a real app, you'd use a service like Proxycurl or RapidAPI
     console.log('LinkedIn scraping would require external service for:', linkedinUrl);
     
-    // Return mock data structure for now
+    // Return mock data structure for now with education info
     return {
       work_experience: [
         {
-          title: "Software Engineer",
+          title: "Software Engineer Intern",
           company: "Tech Company",
-          duration: "2022 - Present",
-          description: "Developing web applications and APIs"
+          duration: "Summer 2023",
+          description: "Developed web applications and APIs"
+        },
+        {
+          title: "Research Assistant",
+          company: "University Lab",
+          duration: "2022 - 2023",
+          description: "Conducted research in machine learning"
         }
       ],
       education_details: [
         {
-          degree: "Computer Science",
-          school: "University",
-          year: "2018-2022",
-          description: "Bachelor's degree in Computer Science"
+          degree: "Bachelor of Science in Computer Science",
+          school: "University of Technology",
+          year: "2020-2024",
+          description: "Relevant coursework: Data Structures, Algorithms, Software Engineering"
         }
       ]
     };
@@ -156,15 +221,29 @@ const scrapeDevPost = async (devpostUrl: string): Promise<any[]> => {
     
     console.log('DevPost scraping would require custom implementation for:', devpostUrl);
     
-    // Return mock project data for now
+    // Return mock hackathon project data
     return [
       {
-        name: "Hackathon Project",
-        description: "Award-winning project from major hackathon",
-        language: "JavaScript",
-        stars: 25,
+        name: "HealthTrack AI",
+        description: "AI-powered health monitoring app built at HackMIT 2023",
+        language: "Python",
+        stars: 15,
         url: devpostUrl,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        type: 'hackathon',
+        event: 'HackMIT 2023',
+        awards: ['Best Use of AI/ML']
+      },
+      {
+        name: "EcoCommute",
+        description: "Sustainable transportation app for reducing carbon footprint",
+        language: "React Native",
+        stars: 8,
+        url: devpostUrl,
+        updated_at: new Date().toISOString(),
+        type: 'hackathon',
+        event: 'TreeHacks 2023',
+        awards: ['Environmental Impact Award']
       }
     ];
   } catch (error) {

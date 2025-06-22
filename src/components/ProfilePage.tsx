@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Star, Users, Plus, Trash2, Download, Code, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -106,13 +107,21 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   ];
 
   const skillOptions = [
-    "React", "Node.js", "Python", "SQL", "C++", "C", "Go", "Rust", "R", 
-    "HTML/CSS", "Cloud/DevOps", "AI/ML", "Databases", "Mobile Dev", 
-    "JavaScript", "TypeScript", "Java", "C#", "PHP", "Ruby", "Swift", 
-    "Kotlin", "Flutter", "Vue.js", "Angular", "Django", "Flask", "Spring"
+    "AI/ML", "C++", "C", "HTML/CSS", "React", "Cloud/DevOps", "SQL", "Rust", 
+    "Python", "Databases", "Node.js", "Mobile Dev", "MATLAB", "Java", 
+    "JavaScript", "TypeScript", "Go", "PHP", "Ruby", "Swift", "Kotlin", 
+    "Flutter", "Vue.js", "Angular", "Django", "Flask", "Spring"
   ];
 
-  const ratingOptions = [1, 2, 3];
+  const skillCategories = [
+    { key: 'uiux', label: 'UI/UX Design' },
+    { key: 'frontend', label: 'Frontend Development' },
+    { key: 'backend', label: 'Backend Development' },
+    { key: 'hardware', label: 'Hardware Engineering' },
+    { key: 'cyber', label: 'Cybersecurity' },
+    { key: 'pitching', label: 'Pitching & Presentation' },
+    { key: 'management', label: 'Project Management' }
+  ];
 
   useEffect(() => {
     if (user) {
@@ -274,9 +283,13 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
       // Update the edited profile with scraped data
       setEditedProfile(prev => ({
         ...prev,
-        github_projects: scrapedData.github_projects || [],
-        work_experience: scrapedData.work_experience || [],
-        education_details: scrapedData.education_details || []
+        github_projects: scrapedData.github_projects || prev.github_projects,
+        work_experience: scrapedData.work_experience || prev.work_experience,
+        education_details: scrapedData.education_details || prev.education_details,
+        // Update hackathon info fields from LinkedIn
+        major: scrapedData.major || prev.major,
+        school: scrapedData.school || prev.school,
+        year: scrapedData.year || prev.year
       }));
 
       const projectsCount = scrapedData.github_projects?.length || 0;
@@ -285,7 +298,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
       toast({
         title: "Data imported successfully! ✨",
-        description: `Found ${projectsCount} projects, ${workCount} work experiences, and ${educationCount} education entries`,
+        description: `Found ${projectsCount} projects, ${workCount} work experiences, and ${educationCount} education entries${scrapedData.major ? `. Detected major: ${scrapedData.major}` : ''}`,
         duration: 5000,
       });
     } catch (error: any) {
@@ -407,6 +420,46 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
         skills: [...currentSkills, skill]
       });
     }
+  };
+
+  // Helper function to handle skill ratings
+  const handleSkillRatingChange = (skillKey: string, rating: number) => {
+    setEditedProfile({
+      ...editedProfile,
+      [skillKey]: rating
+    });
+  };
+
+  // Component to render star rating
+  const StarRating = ({ skillKey, label, value, onChange, readonly = false }: {
+    skillKey: string;
+    label: string;
+    value: number | null;
+    onChange?: (rating: number) => void;
+    readonly?: boolean;
+  }) => {
+    return (
+      <div className="flex items-center justify-between py-2">
+        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <div className="flex space-x-1">
+          {[1, 2, 3].map((rating) => (
+            <button
+              key={rating}
+              type="button"
+              disabled={readonly}
+              onClick={() => !readonly && onChange?.(rating)}
+              className={`w-5 h-5 ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'} transition-all ${
+                (value || 0) >= rating 
+                  ? 'text-yellow-400' 
+                  : 'text-gray-300'
+              }`}
+            >
+              <Star className="w-full h-full fill-current" />
+            </button>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -730,43 +783,54 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               </CardContent>
             </Card>
 
-            {/* Interests */}
+            {/* Skills Section (replacing Interests) */}
             <Card>
               <CardHeader>
-                <CardTitle>Interests</CardTitle>
+                <CardTitle className="flex items-center space-x-2">
+                  <Code className="w-5 h-5 text-blue-500" />
+                  <span>Technical Skills</span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {isEditing ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Interests</label>
-                    <textarea
-                      value={editedProfile.interests?.join(', ') || ''}
-                      onChange={(e) => setEditedProfile({...editedProfile, interests: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"
-                      placeholder="Enter interests separated by commas..."
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select your skills</label>
+                    <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {skillOptions.map((skill) => (
+                          <label key={skill} className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={editedProfile.skills?.includes(skill) || false}
+                              onChange={() => handleSkillsChange(skill)}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">{skill}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-2">
-                    {(profile.interests && profile.interests.length > 0) ? (
-                      profile.interests.map((interest, index) => (
+                    {(profile.skills && profile.skills.length > 0) ? (
+                      profile.skills.map((skill, index) => (
                         <span
                           key={index}
-                          className="px-2 py-1 bg-pink-100 text-pink-700 rounded text-sm"
+                          className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm"
                         >
-                          {interest}
+                          {skill}
                         </span>
                       ))
                     ) : (
-                      <span className="text-gray-400 text-sm">No interests added yet</span>
+                      <span className="text-gray-400 text-sm">No skills added yet</span>
                     )}
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* New Hackathon Info Section */}
+            {/* Hackathon Info Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -857,51 +921,17 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
                     {/* Skills Ratings */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Skills (Rate 1-3)</label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {[
-                          { key: 'uiux', label: 'UI/UX' },
-                          { key: 'frontend', label: 'Frontend' },
-                          { key: 'backend', label: 'Backend' },
-                          { key: 'hardware', label: 'Hardware' },
-                          { key: 'cyber', label: 'Cybersecurity' },
-                          { key: 'pitching', label: 'Pitching' },
-                          { key: 'management', label: 'Management' }
-                        ].map(({ key, label }) => (
-                          <div key={key}>
-                            <label className="block text-sm text-gray-600 mb-1">{label}</label>
-                            <Select value={editedProfile[key as keyof UserProfile]?.toString() || ''} onValueChange={(value) => setEditedProfile({...editedProfile, [key]: parseInt(value) || null})}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Rate 1-3" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {ratingOptions.map((rating) => (
-                                  <SelectItem key={rating} value={rating.toString()}>{rating}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Skill Ratings (1-3 stars)</label>
+                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                        {skillCategories.map(({ key, label }) => (
+                          <StarRating
+                            key={key}
+                            skillKey={key}
+                            label={label}
+                            value={editedProfile[key as keyof UserProfile] as number}
+                            onChange={(rating) => handleSkillRatingChange(key, rating)}
+                          />
                         ))}
-                      </div>
-                    </div>
-
-                    {/* Skills Multi-select */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Technical Skills</label>
-                      <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                          {skillOptions.map((skill) => (
-                            <label key={skill} className="flex items-center space-x-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={editedProfile.skills?.includes(skill) || false}
-                                onChange={() => handleSkillsChange(skill)}
-                                className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
-                              />
-                              <span className="text-sm text-gray-700">{skill}</span>
-                            </label>
-                          ))}
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -944,37 +974,23 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                       </div>
                     )}
 
-                    {/* Display skill ratings */}
-                    {(profile.uiux || profile.frontend || profile.backend || profile.hardware || profile.cyber || profile.pitching || profile.management) && (
-                      <div>
-                        <h4 className="font-medium text-gray-800 mb-2">Skill Ratings</h4>
-                        <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                          {profile.uiux && <p>UI/UX: {profile.uiux}/3</p>}
-                          {profile.frontend && <p>Frontend: {profile.frontend}/3</p>}
-                          {profile.backend && <p>Backend: {profile.backend}/3</p>}
-                          {profile.hardware && <p>Hardware: {profile.hardware}/3</p>}
-                          {profile.cyber && <p>Cybersecurity: {profile.cyber}/3</p>}
-                          {profile.pitching && <p>Pitching: {profile.pitching}/3</p>}
-                          {profile.management && <p>Management: {profile.management}/3</p>}
-                        </div>
+                    {/* Display skill ratings with stars */}
+                    <div>
+                      <h4 className="font-medium text-gray-800 mb-2">Skill Ratings</h4>
+                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                        {skillCategories.map(({ key, label }) => (
+                          <StarRating
+                            key={key}
+                            skillKey={key}
+                            label={label}
+                            value={profile[key as keyof UserProfile] as number}
+                            readonly={true}
+                          />
+                        ))}
                       </div>
-                    )}
+                    </div>
 
-                    {/* Display technical skills */}
-                    {profile.skills && profile.skills.length > 0 && (
-                      <div>
-                        <h4 className="font-medium text-gray-800 mb-2">Technical Skills</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {profile.skills.map((skill, index) => (
-                            <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {!profile.major && !profile.school && !profile.year && !profile.linkedin && !profile.github && !profile.devpost && (!profile.skills || profile.skills.length === 0) && (
+                    {!profile.major && !profile.school && !profile.year && !profile.linkedin && !profile.github && !profile.devpost && (
                       <p className="text-gray-400 text-center py-4">No hackathon information added yet</p>
                     )}
                   </div>
@@ -1041,12 +1057,12 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               </CardContent>
             </Card>
 
-            {/* Projects & Repositories */}
+            {/* Projects & Repositories / Hackathon History */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Star className="w-5 h-5 text-yellow-500" />
-                  <span>Projects & Repositories</span>
+                  <span>Projects & Hackathon History</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1055,7 +1071,14 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                     {profile.github_projects.map((project: any, index: number) => (
                       <div key={index} className="bg-gray-50 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium text-gray-800">{project.name}</h4>
+                          <div className="flex items-center space-x-2">
+                            <h4 className="font-medium text-gray-800">{project.name}</h4>
+                            {project.type === 'hackathon' && (
+                              <span className="inline-block text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded">
+                                Hackathon
+                              </span>
+                            )}
+                          </div>
                           <span className="text-sm text-gray-500 flex items-center">
                             <Star className="w-3 h-3 mr-1" />
                             {project.stars || 0}
@@ -1064,6 +1087,18 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                         <p className="text-gray-600 text-sm mb-2">
                           {project.description || 'No description available'}
                         </p>
+                        {project.event && (
+                          <p className="text-xs text-gray-500 mb-2">Event: {project.event}</p>
+                        )}
+                        {project.awards && project.awards.length > 0 && (
+                          <div className="mb-2">
+                            {project.awards.map((award: string, awardIndex: number) => (
+                              <span key={awardIndex} className="inline-block text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded mr-1">
+                                🏆 {award}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         {project.language && (
                           <span className="inline-block text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
                             {project.language}
@@ -1074,7 +1109,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-400 mb-2">No projects found. Connect your GitHub to import repositories automatically.</p>
+                    <p className="text-gray-400 mb-2">No projects found. Connect your GitHub and DevPost to import repositories and hackathon projects automatically.</p>
                   </div>
                 )}
               </CardContent>
