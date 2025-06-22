@@ -14,6 +14,7 @@ interface DiscoverProfile {
   devpost_url?: string;
   linkedin_url?: string;
   github_projects?: any[];
+  score?: number;
 }
 
 interface ProfileDisplayProps {
@@ -144,9 +145,18 @@ const ProfileDisplay = ({ profile, onSwipe }: ProfileDisplayProps) => {
                     <h2 className="text-3xl font-bold text-app-amber">{profile.name}</h2>
                     <p className="text-xl text-app-neutral">{profile.age} years old</p>
                   </div>
-                  <div className="flex items-center text-app-neutral/80">
-                    <MapPin className="w-4 h-4 mr-1 text-app-amber" />
-                    <span>{profile.distance} km away</span>
+                  <div className="flex items-center gap-4">
+                    {profile.score !== undefined && (
+                      <div className="bg-app-amber/20 border border-app-amber/30 rounded-full px-3 py-1">
+                        <span className="text-app-amber font-bold text-sm">
+                          {Math.round(profile.score * 100)}% Match
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center text-app-neutral/80">
+                      <MapPin className="w-4 h-4 mr-1 text-app-amber" />
+                      <span>{profile.distance} km away</span>
+                    </div>
                   </div>
                 </div>
 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,6 +5,7 @@ import { useMatching } from '@/hooks/useMatching';
 import { useToast } from '@/hooks/use-toast';
 import ProfileDisplay from './discover/ProfileDisplay';
 import SwipeButtons from './discover/SwipeButtons';
+import { computeMatchesForUser, type User, type MatchResult } from '@/services/matchingService';
 
 interface DiscoverProfile {
   id: string;
@@ -19,6 +19,7 @@ interface DiscoverProfile {
   devpost_url?: string;
   linkedin_url?: string;
   github_projects?: any[];
+  score?: number; // Add score for display
 }
 
 const DiscoverPage = () => {
@@ -29,6 +30,34 @@ const DiscoverPage = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<User | null>(null);
+
+  // Fetch current user's profile for matching
+  const fetchCurrentUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching current user profile:', error);
+        return;
+      }
+
+      console.log('Fetched current user profile:', data);
+      console.log('Current user skills:', data.skills);
+      console.log('Current user major:', data.major);
+      console.log('Current user school:', data.school);
+
+      setCurrentUserProfile(data as User);
+    } catch (error) {
+      console.error('Error in fetchCurrentUserProfile:', error);
+    }
+  };
 
   const fetchProfiles = async () => {
     if (!user) return;
@@ -104,7 +133,86 @@ const DiscoverPage = () => {
         }));
 
       console.log('Transformed profiles:', transformedProfiles.length);
-      setProfiles(transformedProfiles);
+
+      // Apply matching algorithm if we have current user profile
+      if (currentUserProfile) {
+        console.log('Applying matching algorithm...');
+        console.log('Current user profile:', currentUserProfile);
+        
+        // Convert transformed profiles to User type for matching
+        const userProfiles: User[] = transformedProfiles.map(profile => {
+          // Find the original database profile to get all fields
+          const originalProfile = data.find(p => p.id === profile.id);
+          return {
+            id: profile.id,
+            name: profile.name,
+            age: profile.age,
+            bio: profile.bio,
+            location: originalProfile?.location || null,
+            photos: profile.photos,
+            interests: profile.interests,
+            occupation: originalProfile?.occupation || null,
+            education: originalProfile?.education || null,
+            github_url: profile.github_url,
+            devpost_url: profile.devpost_url,
+            linkedin_url: profile.linkedin_url,
+            github_projects: profile.github_projects,
+            work_experience: Array.isArray(originalProfile?.work_experience) ? originalProfile.work_experience : [],
+            education_details: Array.isArray(originalProfile?.education_details) ? originalProfile.education_details : [],
+            linkedin: originalProfile?.linkedin || null,
+            github: originalProfile?.github || null,
+            devpost: originalProfile?.devpost || null,
+            major: originalProfile?.major || null,
+            school: originalProfile?.school || null,
+            year: originalProfile?.year || null,
+            uiux: originalProfile?.uiux || null,
+            pitching: originalProfile?.pitching || null,
+            management: originalProfile?.management || null,
+            hardware: originalProfile?.hardware || null,
+            cyber: originalProfile?.cyber || null,
+            frontend: originalProfile?.frontend || null,
+            backend: originalProfile?.backend || null,
+            skills: Array.isArray(originalProfile?.skills) ? originalProfile.skills : []
+          };
+        });
+
+        console.log('User profiles for matching:', userProfiles.map(p => ({
+          id: p.id,
+          name: p.name,
+          skills: p.skills,
+          major: p.major,
+          school: p.school,
+          year: p.year
+        })));
+
+        const matchResults = computeMatchesForUser(
+          currentUserProfile,
+          userProfiles
+        );
+
+        console.log('Match results:', matchResults.map(mr => ({
+          name: mr.match.name,
+          score: mr.score,
+          skillSim: mr.score // This will be the combined score
+        })));
+
+        // Merge match results with profiles
+        const scoredProfiles = transformedProfiles.map(profile => {
+          const matchResult = matchResults.find(mr => mr.match.id === profile.id);
+          return {
+            ...profile,
+            score: matchResult?.score || 0
+          };
+        });
+
+        // Sort by score (highest first)
+        scoredProfiles.sort((a, b) => (b.score || 0) - (a.score || 0));
+        setProfiles(scoredProfiles);
+        console.log('Profiles sorted by match score');
+      } else {
+        setProfiles(transformedProfiles);
+      }
+
       setCurrentIndex(0);
       setError(null);
 
@@ -125,9 +233,15 @@ const DiscoverPage = () => {
     if (user) {
       setLoading(true);
       setError(null);
-      fetchProfiles();
+      fetchCurrentUserProfile();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (user && currentUserProfile) {
+      fetchProfiles();
+    }
+  }, [user, currentUserProfile]);
 
   const handleSwipe = async (direction: 'up' | 'down') => {
     if (currentIndex >= profiles.length) return;
