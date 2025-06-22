@@ -257,6 +257,66 @@ export type Database = {
         }
         Relationships: []
       }
+      test_data_duplicate: {
+        Row: {
+          backend: number | null
+          cyber: number | null
+          devpost: string | null
+          frontend: number | null
+          github: string | null
+          hardware: number | null
+          id: string
+          linkedin: string | null
+          major: string | null
+          management: number | null
+          name: string | null
+          pitching: number | null
+          school: string | null
+          skills: string | null
+          timestamp: string | null
+          uiux: number | null
+          year: string | null
+        }
+        Insert: {
+          backend?: number | null
+          cyber?: number | null
+          devpost?: string | null
+          frontend?: number | null
+          github?: string | null
+          hardware?: number | null
+          id: string
+          linkedin?: string | null
+          major?: string | null
+          management?: number | null
+          name?: string | null
+          pitching?: number | null
+          school?: string | null
+          skills?: string | null
+          timestamp?: string | null
+          uiux?: number | null
+          year?: string | null
+        }
+        Update: {
+          backend?: number | null
+          cyber?: number | null
+          devpost?: string | null
+          frontend?: number | null
+          github?: string | null
+          hardware?: number | null
+          id?: string
+          linkedin?: string | null
+          major?: string | null
+          management?: number | null
+          name?: string | null
+          pitching?: number | null
+          school?: string | null
+          skills?: string | null
+          timestamp?: string | null
+          uiux?: number | null
+          year?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

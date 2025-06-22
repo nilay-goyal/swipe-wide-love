@@ -28,6 +28,7 @@ export const useMatching = () => {
     if (!user) return;
 
     try {
+      console.log('Fetching matches for user:', user.id);
       const { data, error } = await supabase
         .from('matches')
         .select(`
@@ -63,6 +64,7 @@ export const useMatching = () => {
       );
 
       setMatches(matchesWithProfiles);
+      console.log('Fetched matches successfully:', matchesWithProfiles.length);
     } catch (error) {
       console.error('Error in fetchMatches:', error);
     }
@@ -73,6 +75,7 @@ export const useMatching = () => {
     if (!user) return;
 
     try {
+      console.log('Recording swipe:', { swipedUserId, isLike });
       const { error } = await supabase
         .from('swipes')
         .insert({
@@ -131,7 +134,7 @@ export const useMatching = () => {
     }
   };
 
-  // Set up real-time subscription with proper cleanup
+  // Set up real-time subscription with simplified cleanup
   useEffect(() => {
     if (!user) return;
 
@@ -165,6 +168,11 @@ export const useMatching = () => {
       )
       .subscribe((status) => {
         console.log('Matches subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to matches channel');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('Matches subscription error:', status);
+        }
       });
 
     return () => {
