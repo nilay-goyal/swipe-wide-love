@@ -1,6 +1,5 @@
-
 import { useState, useRef, useEffect } from 'react';
-import { Send, ArrowLeft, Heart } from 'lucide-react';
+import { Send, ArrowLeft, Heart, AlertCircle } from 'lucide-react';
 import { useMessaging } from '@/hooks/useMessaging';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -23,9 +22,12 @@ interface LiveMessagingProps {
 
 const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
   const { user } = useAuth();
-  const { messages, loading, sendMessage } = useMessaging(match.id);
+  const { messages, loading, error, sendMessage } = useMessaging(match.id);
   const [newMessage, setNewMessage] = useState('');
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  console.log('LiveMessaging render:', { matchId: match.id, messagesCount: messages.length, error });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -36,10 +38,17 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || sending) return;
     
-    await sendMessage(newMessage);
-    setNewMessage('');
+    setSending(true);
+    try {
+      await sendMessage(newMessage);
+      setNewMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -49,7 +58,24 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
     }
   };
 
-  if (!match.matched_user) return null;
+  if (!match.matched_user) {
+    console.error('No matched user data available');
+    return (
+      <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Error</h3>
+          <p className="text-gray-600">Unable to load match data</p>
+          <button
+            onClick={onBack}
+            className="mt-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col">
@@ -79,6 +105,16 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
           <Heart className="w-4 h-4 text-pink-500 fill-current" />
         </div>
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="bg-red-50 border-b border-red-200 p-3">
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="w-4 h-4 text-red-500" />
+            <span className="text-sm text-red-700">{error}</span>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -136,15 +172,20 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={`Message ${match.matched_user.name}...`}
-              className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              disabled={sending}
+              className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:opacity-50"
             />
           </div>
           <button
             onClick={handleSendMessage}
-            disabled={!newMessage.trim()}
+            disabled={!newMessage.trim() || sending}
             className="dating-gradient text-white p-3 rounded-full hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send className="w-5 h-5" />
+            {sending ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
           </button>
         </div>
       </div>
