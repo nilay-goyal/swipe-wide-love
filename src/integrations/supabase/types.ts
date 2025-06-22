@@ -54,6 +54,70 @@ export type Database = {
         }
         Relationships: []
       }
+      hackathon_participants: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          is_verified: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          is_verified?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          is_verified?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hackathon_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "hackathon_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hackathon_teams: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          member1_id: string
+          member2_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          member1_id: string
+          member2_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          member1_id?: string
+          member2_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hackathon_teams_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "hackathon_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matches: {
         Row: {
           created_at: string
@@ -361,7 +425,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_expired_hackathon_participants: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

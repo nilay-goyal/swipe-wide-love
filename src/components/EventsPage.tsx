@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,7 +54,7 @@ const EventsPage = () => {
     
     try {
       const { data, error } = await supabase
-        .from('hackathon_participants' as any)
+        .from('hackathon_participants')
         .select('event_id')
         .eq('user_id', user.id);
 
@@ -116,9 +117,8 @@ const EventsPage = () => {
       const member1Id = user.id < teammateId ? user.id : teammateId;
       const member2Id = user.id < teammateId ? teammateId : user.id;
 
-      // Use raw SQL query since types aren't updated yet
       const { error } = await supabase
-        .from('hackathon_teams' as any)
+        .from('hackathon_teams')
         .insert({
           event_id: eventId,
           member1_id: member1Id,
@@ -163,7 +163,7 @@ const EventsPage = () => {
       // Remove participation
       try {
         const { error } = await supabase
-          .from('hackathon_participants' as any)
+          .from('hackathon_participants')
           .delete()
           .eq('user_id', user.id)
           .eq('event_id', eventId);
@@ -188,7 +188,7 @@ const EventsPage = () => {
       // Join hackathon
       try {
         const { error } = await supabase
-          .from('hackathon_participants' as any)
+          .from('hackathon_participants')
           .insert({
             user_id: user.id,
             event_id: eventId,
