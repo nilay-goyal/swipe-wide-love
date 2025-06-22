@@ -29,13 +29,12 @@ const DiscoverPage = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const fetchProfiles = async () => {
     if (!user) return;
 
     try {
-      console.log('Fetching swiped profiles for user:', user.id);
+      console.log('Fetching profiles for user:', user.id);
       
       // Get profiles that the current user has already swiped on
       const { data: swipedProfiles, error: swipeError } = await supabase
@@ -48,24 +47,28 @@ const DiscoverPage = () => {
         throw swipeError;
       }
 
-      console.log('Found swiped profiles:', swipedProfiles?.length || 0);
       const swipedIds = swipedProfiles?.map(swipe => swipe.swiped_id) || [];
+      console.log('Already swiped on:', swipedIds.length, 'profiles');
 
-      console.log('Starting to fetch profiles for user:', user.id);
-      
-      // Fetch all profiles except the current user and already swiped profiles
-      const { data, error } = await supabase
+      // Build the query to exclude current user and already swiped profiles
+      let query = supabase
         .from('profiles')
         .select('*')
-        .neq('id', user.id)
-        .not('id', 'in', `(${swipedIds.join(',') || 'null'})`);
+        .neq('id', user.id);
+
+      // Only add the not-in filter if there are swiped profiles
+      if (swipedIds.length > 0) {
+        query = query.not('id', 'in', `(${swipedIds.join(',')})`);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching profiles:', error);
         throw error;
       }
 
-      console.log('Raw profiles data:', data);
+      console.log('Raw profiles data:', data?.length || 0, 'profiles found');
 
       if (!data || data.length === 0) {
         console.log('No profiles found');
@@ -74,22 +77,24 @@ const DiscoverPage = () => {
         return;
       }
 
-      // Transform and filter profiles - be more lenient with filtering
+      // Transform profiles - require at least name and some content
       const transformedProfiles = data
         .filter(profile => {
-          // Only require that the profile has an ID and some basic info
-          const hasBasicInfo = profile.id && (profile.name || profile.bio);
-          if (!hasBasicInfo) {
-            console.log('Filtering out profile with missing basic info:', profile.id);
+          const hasName = profile.name && profile.name.trim() !== '';
+          const hasContent = profile.bio || profile.interests?.length > 0 || profile.github_url || profile.linkedin_url;
+          
+          if (!hasName || !hasContent) {
+            console.log('Filtering out incomplete profile:', profile.id, { hasName, hasContent });
+            return false;
           }
-          return hasBasicInfo;
+          return true;
         })
         .map(profile => ({
           id: profile.id,
-          name: profile.name || 'Anonymous',
-          age: profile.age || 0,
-          bio: profile.bio || 'No bio available',
-          distance: Math.floor(Math.random() * 50) + 1, // Mock distance for now
+          name: profile.name,
+          age: profile.age || 20,
+          bio: profile.bio || '',
+          distance: Math.floor(Math.random() * 50) + 1, // Mock distance
           photos: profile.photos || ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'],
           interests: profile.interests || [],
           github_url: profile.github_url,
@@ -113,10 +118,6 @@ const DiscoverPage = () => {
       });
     } finally {
       setLoading(false);
-      if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
-        setLoadingTimeout(null);
-      }
     }
   };
 
@@ -124,27 +125,9 @@ const DiscoverPage = () => {
     if (user) {
       setLoading(true);
       setError(null);
-      
-      // Set a timeout to prevent infinite loading
-      const timeout = setTimeout(() => {
-        console.warn('Profile loading timed out after 10 seconds');
-        setLoading(false);
-        setError('Loading profiles is taking too long. Please refresh the page.');
-      }, 10000);
-      
-      setLoadingTimeout(timeout);
       fetchProfiles();
     }
   }, [user]);
-
-  // Clean up timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
-      }
-    };
-  }, [loadingTimeout]);
 
   const handleSwipe = async (direction: 'up' | 'down') => {
     if (currentIndex >= profiles.length) return;
@@ -173,7 +156,6 @@ const DiscoverPage = () => {
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
         <p className="text-lg text-gray-600">Finding amazing people for you...</p>
-        <p className="text-sm text-gray-500">This might take a moment</p>
       </div>
     );
   }

@@ -112,7 +112,6 @@ export type Database = {
           age: number | null
           bio: string | null
           created_at: string
-          devpost_projects: Json | null
           devpost_url: string | null
           education: string | null
           education_details: Json | null
@@ -133,7 +132,6 @@ export type Database = {
           age?: number | null
           bio?: string | null
           created_at?: string
-          devpost_projects?: Json | null
           devpost_url?: string | null
           education?: string | null
           education_details?: Json | null
@@ -154,7 +152,6 @@ export type Database = {
           age?: number | null
           bio?: string | null
           created_at?: string
-          devpost_projects?: Json | null
           devpost_url?: string | null
           education?: string | null
           education_details?: Json | null
