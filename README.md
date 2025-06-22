@@ -1,73 +1,81 @@
-# Welcome to your Lovable project
+# Ctrl+F
 
-## Project info
+A modern platform designed specifically for developers and hackathon participants to connect, collaborate, and form meaningful relationships through shared technical interests and project experiences.
 
-**URL**: https://lovable.dev/projects/8b1d9c40-048b-4ecb-807c-fedafb61e01d
+## Overview
 
-## How can I edit this code?
+Ctrl+F leverages GitHub profiles, project portfolios, and technical skills to create intelligent matches between developers. Users can discover potential partners through an enhanced matching algorithm that considers programming languages, project experience, educational background, and professional interests.
 
-There are several ways of editing your application.
+## Key Features
 
-**Use Lovable**
+- **Smart Matching**: Algorithm-based compatibility scoring using technical skills, GitHub projects, and educational background
+- **Developer Profiles**: Integration with GitHub, LinkedIn, and DevPost to showcase technical expertise
+- **Hackathon Events**: Browse and join upcoming MLH hackathons with team formation capabilities
+- **Real-time Messaging**: Chat with matches and coordinate hackathon participation
+- **Premium Features**: Enhanced discovery and advanced matching capabilities
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8b1d9c40-048b-4ecb-807c-fedafb61e01d) and start prompting.
+## Technology Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend**: React 18, TypeScript, Vite
+- **UI Components**: Radix UI, Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Auth, Real-time)
+- **State Management**: TanStack Query
+- **Build Tool**: Vite with SWC
 
-**Use your preferred IDE**
+## Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js 18+ and npm
+- Supabase account for backend services
 
-Follow these steps:
+### Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd swipe-wide-love
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies:
+```bash
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Configure environment variables:
+Create a `.env.local` file with your Supabase credentials:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. Run database migrations:
+```bash
+npx supabase db push
+```
+
+5. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:5173`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Scripts
 
-**Use GitHub Codespaces**
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Database
 
-## What technologies are used for this project?
+The application uses Supabase with the following core tables:
+- `profiles` - User profiles with technical skills and social links
+- `swipes` - User interaction history
+- `matches` - Successful matches between users
+- `messages` - Real-time messaging system
+- `hackathon_events` - Event listings from MLH
+- `hackathon_participants` - Event participation tracking
 
-This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/8b1d9c40-048b-4ecb-807c-fedafb61e01d) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
