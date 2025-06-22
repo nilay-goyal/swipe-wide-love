@@ -1,13 +1,11 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useMatching } from '@/hooks/useMatching';
+import { useToast } from '@/hooks/use-toast';
 import ProfileDisplay from './discover/ProfileDisplay';
 import SwipeButtons from './discover/SwipeButtons';
-import MatchNotification from './MatchNotification';
-import LiveMessaging from './LiveMessaging';
-import { useToast } from '@/hooks/use-toast';
-import { useMatching } from '@/hooks/useMatching';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 
 interface DiscoverProfile {
   id: string;
@@ -25,263 +23,239 @@ interface DiscoverProfile {
 
 const DiscoverPage = () => {
   const { user } = useAuth();
+  const { recordSwipe } = useMatching();
   const { toast } = useToast();
-  const { newMatch, recordSwipe, clearNewMatch } = useMatching();
   const [profiles, setProfiles] = useState<DiscoverProfile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentMatch, setCurrentMatch] = useState<any>(null);
-  const [swipedProfiles, setSwipedProfiles] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  // Fetch profiles from Supabase with improved error handling
   const fetchProfiles = async () => {
-    if (!user) {
-      console.log('No user found, cannot fetch profiles');
-      setLoading(false);
-      return;
-    }
-
-    console.log('Starting to fetch profiles for user:', user.id);
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .neq('id', user.id)
-        .not('name', 'is', null)
-        .neq('name', '');
-
-      if (fetchError) {
-        console.error('Error fetching profiles:', fetchError);
-        setError('Failed to load profiles');
-        setLoading(false);
-        return;
-      }
-
-      console.log('Raw profiles data:', data);
-
-      // Transform to match expected format and filter out swiped profiles
-      const transformedProfiles = (data || [])
-        .filter(profile => {
-          // Filter out profiles with missing essential data
-          const isValid = profile.name && profile.name.trim() !== '' && !swipedProfiles.has(profile.id);
-          if (!isValid) {
-            console.log('Filtering out invalid profile:', profile.id, profile.name);
-          }
-          return isValid;
-        })
-        .map(profile => ({
-          id: profile.id,
-          name: profile.name || 'Anonymous',
-          age: profile.age || 25,
-          bio: profile.bio || 'No bio available',
-          distance: Math.floor(Math.random() * 20) + 1,
-          photos: profile.photos || ['https://images.unsplash.com/photo-1494790108755-2616b612b786?w=500&h=600&fit=crop&crop=face'],
-          interests: profile.interests || [],
-          github_url: profile.github_url,
-          devpost_url: profile.devpost_url,
-          linkedin_url: profile.linkedin_url,
-          github_projects: Array.isArray(profile.github_projects) ? profile.github_projects : []
-        }));
-
-      console.log('Transformed profiles:', transformedProfiles.length);
-      setProfiles(transformedProfiles);
-      
-      if (transformedProfiles.length === 0) {
-        setError('No more profiles to discover');
-      }
-    } catch (error) {
-      console.error('Error in fetchProfiles:', error);
-      setError('Failed to load profiles');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch user's existing swipes to filter them out
-  const fetchSwipedProfiles = async () => {
     if (!user) return;
 
-    console.log('Fetching swiped profiles for user:', user.id);
     try {
-      const { data, error } = await supabase
+      console.log('Fetching swiped profiles for user:', user.id);
+      
+      // Get profiles that the current user has already swiped on
+      const { data: swipedProfiles, error: swipeError } = await supabase
         .from('swipes')
         .select('swiped_id')
         .eq('swiper_id', user.id);
 
+      if (swipeError) {
+        console.error('Error fetching swiped profiles:', swipeError);
+        throw swipeError;
+      }
+
+      console.log('Found swiped profiles:', swipedProfiles?.length || 0);
+      const swipedIds = swipedProfiles?.map(swipe => swipe.swiped_id) || [];
+
+      console.log('Starting to fetch profiles for user:', user.id);
+      
+      // Fetch all profiles except the current user and already swiped profiles
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .neq('id', user.id)
+        .not('id', 'in', `(${swipedIds.join(',') || 'null'})`);
+
       if (error) {
-        console.error('Error fetching swiped profiles:', error);
+        console.error('Error fetching profiles:', error);
+        throw error;
+      }
+
+      console.log('Raw profiles data:', data);
+
+      if (!data || data.length === 0) {
+        console.log('No profiles found');
+        setProfiles([]);
+        setError('No new profiles to discover');
         return;
       }
 
-      // Properly type the swipes data
-      const swipedIds = new Set<string>(
-        (data as Array<{ swiped_id: string }>)?.map((swipe) => swipe.swiped_id) || []
-      );
-      console.log('Found swiped profiles:', swipedIds.size);
-      setSwipedProfiles(swipedIds);
+      // Transform and filter profiles - be more lenient with filtering
+      const transformedProfiles = data
+        .filter(profile => {
+          // Only require that the profile has an ID and some basic info
+          const hasBasicInfo = profile.id && (profile.name || profile.bio);
+          if (!hasBasicInfo) {
+            console.log('Filtering out profile with missing basic info:', profile.id);
+          }
+          return hasBasicInfo;
+        })
+        .map(profile => ({
+          id: profile.id,
+          name: profile.name || 'Anonymous',
+          age: profile.age || 0,
+          bio: profile.bio || 'No bio available',
+          distance: Math.floor(Math.random() * 50) + 1, // Mock distance for now
+          photos: profile.photos || ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'],
+          interests: profile.interests || [],
+          github_url: profile.github_url,
+          devpost_url: profile.devpost_url,
+          linkedin_url: profile.linkedin_url,
+          github_projects: profile.github_projects || []
+        }));
+
+      console.log('Transformed profiles:', transformedProfiles.length);
+      setProfiles(transformedProfiles);
+      setCurrentIndex(0);
+      setError(null);
+
     } catch (error) {
-      console.error('Error fetching swipes:', error);
-      // Continue without filtering if swipes table doesn't exist yet
+      console.error('Error in fetchProfiles:', error);
+      setError('Failed to load profiles. Please try again.');
+      toast({
+        title: "Error loading profiles",
+        description: "Please check your connection and try again",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        setLoadingTimeout(null);
+      }
     }
   };
 
   useEffect(() => {
     if (user) {
-      fetchSwipedProfiles();
+      setLoading(true);
+      setError(null);
+      
+      // Set a timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        console.warn('Profile loading timed out after 10 seconds');
+        setLoading(false);
+        setError('Loading profiles is taking too long. Please refresh the page.');
+      }, 10000);
+      
+      setLoadingTimeout(timeout);
+      fetchProfiles();
     }
   }, [user]);
 
+  // Clean up timeout on unmount
   useEffect(() => {
-    if (user && swipedProfiles) {
-      fetchProfiles();
-    }
-  }, [user, swipedProfiles]);
-
-  // Add timeout for loading state
-  useEffect(() => {
-    if (loading) {
-      const timeout = setTimeout(() => {
-        if (loading) {
-          console.warn('Profile loading timed out');
-          setError('Loading timed out. Please try again.');
-          setLoading(false);
-        }
-      }, 10000); // 10 second timeout
-
-      return () => clearTimeout(timeout);
-    }
-  }, [loading]);
+    return () => {
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+    };
+  }, [loadingTimeout]);
 
   const handleSwipe = async (direction: 'up' | 'down') => {
+    if (currentIndex >= profiles.length) return;
+
     const currentProfile = profiles[currentIndex];
-    if (!currentProfile) return;
-
     const isLike = direction === 'up';
-    
-    console.log('Handling swipe:', { profileId: currentProfile.id, isLike });
-    
-    // Record the swipe
+
     await recordSwipe(currentProfile.id, isLike);
-    
-    // Add to swiped profiles set
-    setSwipedProfiles(prev => new Set([...prev, currentProfile.id]));
 
-    if (isLike) {
-      toast({
-        title: "Like sent! 💖",
-        description: `You liked ${currentProfile.name}`,
-        duration: 2000,
-      });
-    }
+    toast({
+      title: isLike ? "Liked! ❤️" : "Passed ✋",
+      description: isLike 
+        ? `You liked ${currentProfile.name}` 
+        : `You passed on ${currentProfile.name}`,
+      duration: 2000,
+    });
 
-    // Move to next profile
-    if (currentIndex < profiles.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      // Refresh profiles when we reach the end
-      setCurrentIndex(0);
-      setTimeout(() => {
-        fetchProfiles();
-      }, 1000);
-    }
+    setCurrentIndex(prev => prev + 1);
   };
-
-  const handleStartChat = (match: any) => {
-    setCurrentMatch(match);
-    clearNewMatch();
-  };
-
-  const handleBackFromChat = () => {
-    setCurrentMatch(null);
-  };
-
-  if (currentMatch) {
-    return (
-      <LiveMessaging
-        match={currentMatch}
-        onBack={handleBackFromChat}
-      />
-    );
-  }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="dating-gradient w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-          </div>
-          <p className="text-gray-600">Loading profiles...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-lg text-gray-600">Finding amazing people for you...</p>
+        <p className="text-sm text-gray-500">This might take a moment</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="dating-gradient w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <div className="text-white text-2xl">⚠️</div>
-          </div>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button 
-            onClick={() => fetchProfiles()}
-            className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
-          >
-            Try Again
-          </button>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="text-6xl">😕</div>
+        <h3 className="text-xl font-semibold text-gray-800">{error}</h3>
+        <button
+          onClick={() => {
+            setLoading(true);
+            setError(null);
+            fetchProfiles();
+          }}
+          className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
 
   if (profiles.length === 0) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="dating-gradient w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <div className="text-white text-2xl">🔍</div>
-          </div>
-          <p className="text-gray-600 mb-4">No more profiles to discover</p>
-          <button 
-            onClick={() => fetchProfiles()}
-            className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
-          >
-            Refresh
-          </button>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="text-6xl">🎉</div>
+        <h3 className="text-xl font-semibold text-gray-800">You've seen everyone!</h3>
+        <p className="text-gray-600 text-center max-w-md">
+          Check back later for new profiles, or update your preferences to see more people.
+        </p>
+        <button
+          onClick={() => {
+            setLoading(true);
+            fetchProfiles();
+          }}
+          className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+        >
+          Refresh
+        </button>
       </div>
     );
   }
 
-  return (
-    <div className="py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Find Your Hackathon Teammates</h1>
-        <p className="text-gray-600">
-          Profile {currentIndex + 1} of {profiles.length}
+  if (currentIndex >= profiles.length) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="text-6xl">✨</div>
+        <h3 className="text-xl font-semibold text-gray-800">All caught up!</h3>
+        <p className="text-gray-600 text-center max-w-md">
+          You've swiped through all available profiles. Check back later for new matches!
         </p>
+        <button
+          onClick={() => {
+            setCurrentIndex(0);
+            setLoading(true);
+            fetchProfiles();
+          }}
+          className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+        >
+          Start Over
+        </button>
       </div>
-      
-      <ProfileDisplay 
-        profile={profiles[currentIndex]} 
-        onSwipe={handleSwipe}
-      />
-      <SwipeButtons 
-        onPass={() => handleSwipe('down')}
-        onLike={() => handleSwipe('up')}
-      />
+    );
+  }
 
-      <MatchNotification
-        match={newMatch}
-        onClose={clearNewMatch}
-        onStartChat={handleStartChat}
-      />
+  const currentProfile = profiles[currentIndex];
+
+  return (
+    <div className="min-h-screen py-8">
+      <div className="max-w-4xl mx-auto px-4 space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Discover</h1>
+          <p className="text-gray-600">
+            Profile {currentIndex + 1} of {profiles.length}
+          </p>
+        </div>
+
+        <ProfileDisplay
+          profile={currentProfile}
+          onSwipe={handleSwipe}
+        />
+
+        <SwipeButtons onSwipe={handleSwipe} />
+      </div>
     </div>
   );
 };

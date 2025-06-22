@@ -35,6 +35,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   const [scrapingGithub, setScrapingGithub] = useState(false);
   const [scrapingLinkedin, setScrapingLinkedin] = useState(false);
   const [scrapingDevpost, setScrapingDevpost] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
     name: '',
@@ -66,15 +67,25 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
     setLoading(true);
     try {
+      console.log('Fetching profile for user:', user.id);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        if (error.code === 'PGRST116') {
+          // Profile doesn't exist, this is fine for new users
+          console.log('No profile found for user, using defaults');
+        } else {
+          throw error;
+        }
+      }
 
       if (data) {
+        console.log('Profile data found:', data);
         const profileData: UserProfile = {
           id: data.id,
           name: data.name || '',
@@ -94,8 +105,15 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
         };
         setProfile(profileData);
         setEditedProfile(profileData);
+      } else {
+        console.log('No profile data, user may need to create profile');
+        // Set the user ID for new profiles
+        const newProfile = { ...profile, id: user.id };
+        setProfile(newProfile);
+        setEditedProfile(newProfile);
       }
     } catch (error: any) {
+      console.error('Error in fetchProfile:', error);
       toast({
         title: "Error loading profile",
         description: error.message,
@@ -104,6 +122,25 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const validateRequiredFields = () => {
+    const errors: string[] = [];
+    
+    if (!editedProfile.name || editedProfile.name.trim() === '') {
+      errors.push('Name is required');
+    }
+    
+    if (!editedProfile.age || editedProfile.age <= 0) {
+      errors.push('Age is required and must be greater than 0');
+    }
+    
+    if (!editedProfile.bio || editedProfile.bio.trim() === '') {
+      errors.push('Bio is required');
+    }
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
   };
 
   const getCurrentLocation = () => {
@@ -390,19 +427,30 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
       return;
     }
     setIsEditing(true);
+    setValidationErrors([]);
   };
 
   const handleSave = async () => {
     if (!user) return;
+
+    // Validate required fields
+    if (!validateRequiredFields()) {
+      toast({
+        title: "Please complete required fields",
+        description: "Name, age, and bio are required fields marked with *",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const { error } = await supabase
         .from('profiles')
         .upsert({
           id: user.id,
-          name: editedProfile.name,
+          name: editedProfile.name?.trim(),
           age: editedProfile.age,
-          bio: editedProfile.bio,
+          bio: editedProfile.bio?.trim(),
           location: editedProfile.location,
           photos: editedProfile.photos,
           interests: editedProfile.interests,
@@ -421,6 +469,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
       setProfile(editedProfile);
       setIsEditing(false);
+      setValidationErrors([]);
       toast({
         title: "Profile Updated! ✨",
         description: "Your changes have been saved successfully",
@@ -438,6 +487,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   const handleCancel = () => {
     setEditedProfile(profile);
     setIsEditing(false);
+    setValidationErrors([]);
   };
 
   const handleSignOut = async () => {
@@ -521,6 +571,18 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           )}
         </div>
 
+        {/* Validation Errors */}
+        {validationErrors.length > 0 && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <h3 className="text-red-800 font-semibold mb-2">Please fix the following errors:</h3>
+            <ul className="list-disc list-inside text-red-700">
+              {validationErrors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {showWelcomeMessage && (
           <div className="bg-pink-50 border border-pink-200 rounded-xl p-6 mb-6">
             <h3 className="text-lg font-semibold text-pink-800 mb-2">
@@ -571,25 +633,35 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               {/* Basic Info */}
               <div className="text-center mb-6">
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={editedProfile.name || ''}
-                    onChange={(e) => setEditedProfile({...editedProfile, name: e.target.value})}
-                    className="text-2xl font-bold bg-transparent border-b-2 border-pink-300 text-gray-800 placeholder-gray-500 focus:border-pink-500 focus:outline-none text-center w-full mb-2"
-                    placeholder="Enter your name"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.name || ''}
+                      onChange={(e) => setEditedProfile({...editedProfile, name: e.target.value})}
+                      className="text-2xl font-bold bg-transparent border-b-2 border-pink-300 text-gray-800 placeholder-gray-500 focus:border-pink-500 focus:outline-none text-center w-full mb-2"
+                      placeholder="Enter your name"
+                    />
+                  </div>
                 ) : (
                   <h2 className="text-2xl font-bold text-gray-800 mb-2">{profile.name || 'Anonymous'}</h2>
                 )}
                 
                 {isEditing ? (
-                  <input
-                    type="number"
-                    value={editedProfile.age || ''}
-                    onChange={(e) => setEditedProfile({...editedProfile, age: parseInt(e.target.value) || null})}
-                    className="text-lg bg-transparent border-b border-pink-300 text-gray-600 placeholder-gray-500 focus:border-pink-500 focus:outline-none text-center w-24"
-                    placeholder="Age"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Age <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={editedProfile.age || ''}
+                      onChange={(e) => setEditedProfile({...editedProfile, age: parseInt(e.target.value) || null})}
+                      className="text-lg bg-transparent border-b border-pink-300 text-gray-600 placeholder-gray-500 focus:border-pink-500 focus:outline-none text-center w-24"
+                      placeholder="Age"
+                    />
+                  </div>
                 ) : (
                   <p className="text-lg text-gray-600">{profile.age ? `${profile.age} years old` : 'Age not specified'}</p>
                 )}
@@ -597,7 +669,9 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
               {/* Bio */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">About</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                  About {isEditing && <span className="text-red-500 ml-1">*</span>}
+                </h3>
                 {isEditing ? (
                   <textarea
                     value={editedProfile.bio || ''}
@@ -767,7 +841,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               {isEditing ? (
                 <textarea
                   value={editedProfile.interests?.join(', ') || ''}
-                  onChange={(e) => setEditedProfile({...editedProfile, interests: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
+                  onChange={(e) => setEditedProfile({...editedProfile, interests: e.target.value.split(',').map(s => s.trim()).filter(s => s)} )}
                   rows={3}
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-gray-800 placeholder-gray-500 focus:border-pink-500 focus:outline-none resize-none"
                   placeholder="Enter interests separated by commas..."
