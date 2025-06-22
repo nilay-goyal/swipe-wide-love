@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Star, Users, Plus, Trash2 } from 'lucide-react';
+import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Star, Users, Plus, Trash2, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +34,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   const { user, signOut } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
@@ -161,6 +162,71 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     return errors.length === 0;
   };
 
+  const handleImportData = async () => {
+    if (!user) return;
+
+    const hasAnyUrl = editedProfile.github_url || editedProfile.linkedin_url || editedProfile.devpost_url;
+    
+    if (!hasAnyUrl) {
+      toast({
+        title: "No social links found",
+        description: "Please add at least one social profile URL before importing",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsImporting(true);
+    
+    try {
+      toast({
+        title: "Importing data from social profiles...",
+        description: "This may take a few seconds",
+      });
+
+      console.log('Starting import with URLs:', {
+        github_url: editedProfile.github_url,
+        linkedin_url: editedProfile.linkedin_url,
+        devpost_url: editedProfile.devpost_url,
+      });
+
+      const scrapedData = await scrapeSocialProfiles({
+        github_url: editedProfile.github_url || undefined,
+        linkedin_url: editedProfile.linkedin_url || undefined,
+        devpost_url: editedProfile.devpost_url || undefined,
+      });
+
+      console.log('Scraped data received:', scrapedData);
+
+      // Update the edited profile with scraped data
+      setEditedProfile(prev => ({
+        ...prev,
+        github_projects: scrapedData.github_projects || [],
+        work_experience: scrapedData.work_experience || [],
+        education_details: scrapedData.education_details || []
+      }));
+
+      const projectsCount = scrapedData.github_projects?.length || 0;
+      const workCount = scrapedData.work_experience?.length || 0;
+      const educationCount = scrapedData.education_details?.length || 0;
+
+      toast({
+        title: "Data imported successfully! ✨",
+        description: `Found ${projectsCount} projects, ${workCount} work experiences, and ${educationCount} education entries`,
+        duration: 5000,
+      });
+    } catch (error: any) {
+      console.error('Error importing data:', error);
+      toast({
+        title: "Error importing data",
+        description: error.message || "Failed to import data from social profiles",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   const handleEditClick = () => {
     if (!user) {
       onEditRequireAuth?.();
@@ -183,34 +249,6 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     }
 
     try {
-      // Check if social URLs have changed to trigger scraping
-      const urlsChanged = 
-        profile.github_url !== editedProfile.github_url ||
-        profile.linkedin_url !== editedProfile.linkedin_url ||
-        profile.devpost_url !== editedProfile.devpost_url;
-
-      let scrapedData: ScrapedData = {
-        github_projects: [],
-        work_experience: [],
-        education_details: []
-      };
-      
-      if (urlsChanged) {
-        toast({
-          title: "Importing data from social profiles...",
-          description: "This may take a few seconds",
-        });
-
-        // Scrape social profiles for new data
-        scrapedData = await scrapeSocialProfiles({
-          github_url: editedProfile.github_url || undefined,
-          linkedin_url: editedProfile.linkedin_url || undefined,
-          devpost_url: editedProfile.devpost_url || undefined,
-        });
-
-        console.log('Scraped data:', scrapedData);
-      }
-
       const profileData = {
         id: user.id,
         name: editedProfile.name?.trim(),
@@ -224,9 +262,9 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
         github_url: editedProfile.github_url,
         devpost_url: editedProfile.devpost_url,
         linkedin_url: editedProfile.linkedin_url,
-        github_projects: scrapedData.github_projects || editedProfile.github_projects,
-        work_experience: scrapedData.work_experience || editedProfile.work_experience,
-        education_details: scrapedData.education_details || editedProfile.education_details,
+        github_projects: editedProfile.github_projects,
+        work_experience: editedProfile.work_experience,
+        education_details: editedProfile.education_details,
       };
 
       const { error } = await supabase
@@ -235,22 +273,13 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
       if (error) throw error;
 
-      // Update local state with scraped data
-      const updatedProfile = {
-        ...editedProfile,
-        github_projects: scrapedData.github_projects || editedProfile.github_projects,
-        work_experience: scrapedData.work_experience || editedProfile.work_experience,
-        education_details: scrapedData.education_details || editedProfile.education_details,
-      };
-
-      setProfile(updatedProfile);
-      setEditedProfile(updatedProfile);
+      setProfile(editedProfile);
       setIsEditing(false);
       setValidationErrors([]);
       
       toast({
         title: "Profile Updated! ✨",
-        description: urlsChanged ? "Your profile has been updated with imported data from your social links" : "Your changes have been saved successfully",
+        description: "Your changes have been saved successfully",
         duration: 3000,
       });
     } catch (error: any) {
@@ -493,7 +522,19 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
             {/* Social Links */}
             <Card>
               <CardHeader>
-                <CardTitle>Social Links</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Social Links</span>
+                  {isEditing && (
+                    <button
+                      onClick={handleImportData}
+                      disabled={isImporting}
+                      className="flex items-center space-x-2 px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>{isImporting ? 'Importing...' : 'Import Data'}</span>
+                    </button>
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {isEditing ? (
@@ -529,6 +570,12 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                         placeholder="https://devpost.com/username"
                       />
+                    </div>
+                    
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm text-blue-700">
+                        💡 Add your social profile URLs above, then click "Import Data" to automatically populate your projects, work experience, and education details.
+                      </p>
                     </div>
                   </div>
                 ) : (

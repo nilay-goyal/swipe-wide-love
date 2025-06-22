@@ -12,6 +12,8 @@ export const scrapeSocialProfiles = async (urls: {
   linkedin_url?: string;
   devpost_url?: string;
 }): Promise<ScrapedData> => {
+  console.log('Starting social profile scraping with URLs:', urls);
+  
   const scrapedData: ScrapedData = {
     github_projects: [],
     work_experience: [],
@@ -23,7 +25,8 @@ export const scrapeSocialProfiles = async (urls: {
     if (urls.github_url) {
       console.log('Scraping GitHub profile:', urls.github_url);
       const githubData = await scrapeGitHub(urls.github_url);
-      if (githubData) {
+      console.log('GitHub data received:', githubData);
+      if (githubData && githubData.length > 0) {
         scrapedData.github_projects = githubData;
       }
     }
@@ -32,6 +35,7 @@ export const scrapeSocialProfiles = async (urls: {
     if (urls.linkedin_url) {
       console.log('Scraping LinkedIn profile:', urls.linkedin_url);
       const linkedinData = await scrapeLinkedIn(urls.linkedin_url);
+      console.log('LinkedIn data received:', linkedinData);
       if (linkedinData) {
         scrapedData.work_experience = linkedinData.work_experience || [];
         scrapedData.education_details = linkedinData.education_details || [];
@@ -42,30 +46,56 @@ export const scrapeSocialProfiles = async (urls: {
     if (urls.devpost_url) {
       console.log('Scraping DevPost profile:', urls.devpost_url);
       const devpostData = await scrapeDevPost(urls.devpost_url);
-      if (devpostData) {
+      console.log('DevPost data received:', devpostData);
+      if (devpostData && devpostData.length > 0) {
         scrapedData.github_projects = [...(scrapedData.github_projects || []), ...devpostData];
       }
     }
 
+    console.log('Final scraped data:', scrapedData);
     return scrapedData;
   } catch (error) {
     console.error('Error scraping social profiles:', error);
-    return scrapedData;
+    throw new Error('Failed to import data from social profiles. Please check your URLs and try again.');
   }
 };
 
 const scrapeGitHub = async (githubUrl: string): Promise<any[]> => {
   try {
-    // Extract username from GitHub URL
-    const username = githubUrl.split('github.com/')[1]?.split('/')[0];
-    if (!username) return [];
+    console.log('Processing GitHub URL:', githubUrl);
+    
+    // Extract username from GitHub URL - handle various URL formats
+    let username = '';
+    if (githubUrl.includes('github.com/')) {
+      const urlParts = githubUrl.split('github.com/')[1];
+      if (urlParts) {
+        username = urlParts.split('/')[0];
+      }
+    }
+    
+    console.log('Extracted GitHub username:', username);
+    
+    if (!username) {
+      console.error('Could not extract username from GitHub URL');
+      return [];
+    }
 
     // Use GitHub API to get user repositories
-    const response = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=10`);
-    if (!response.ok) return [];
+    const apiUrl = `https://api.github.com/users/${username}/repos?sort=updated&per_page=10`;
+    console.log('Fetching from GitHub API:', apiUrl);
+    
+    const response = await fetch(apiUrl);
+    console.log('GitHub API response status:', response.status);
+    
+    if (!response.ok) {
+      console.error('GitHub API request failed:', response.status, response.statusText);
+      return [];
+    }
 
     const repos = await response.json();
-    return repos.map((repo: any) => ({
+    console.log('GitHub repos received:', repos.length, 'repositories');
+    
+    const formattedRepos = repos.map((repo: any) => ({
       name: repo.name,
       description: repo.description || 'No description available',
       language: repo.language,
@@ -73,6 +103,9 @@ const scrapeGitHub = async (githubUrl: string): Promise<any[]> => {
       url: repo.html_url,
       updated_at: repo.updated_at
     }));
+    
+    console.log('Formatted GitHub repos:', formattedRepos);
+    return formattedRepos;
   } catch (error) {
     console.error('Error scraping GitHub:', error);
     return [];
@@ -113,9 +146,14 @@ const scrapeLinkedIn = async (linkedinUrl: string): Promise<any> => {
 const scrapeDevPost = async (devpostUrl: string): Promise<any[]> => {
   try {
     // Extract username from DevPost URL
-    const username = devpostUrl.split('devpost.com/')[1]?.split('/')[0];
-    if (!username) return [];
-
+    let username = '';
+    if (devpostUrl.includes('devpost.com/')) {
+      const urlParts = devpostUrl.split('devpost.com/')[1];
+      if (urlParts) {
+        username = urlParts.split('/')[0];
+      }
+    }
+    
     console.log('DevPost scraping would require custom implementation for:', devpostUrl);
     
     // Return mock project data for now
