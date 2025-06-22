@@ -95,7 +95,7 @@ const DiscoverPage = () => {
           github_url: profile.github_url,
           devpost_url: profile.devpost_url,
           linkedin_url: profile.linkedin_url,
-          github_projects: profile.github_projects || []
+          github_projects: Array.isArray(profile.github_projects) ? profile.github_projects : []
         }));
 
       console.log('Transformed profiles:', transformedProfiles.length);
@@ -164,6 +164,9 @@ const DiscoverPage = () => {
 
     setCurrentIndex(prev => prev + 1);
   };
+
+  const handlePass = () => handleSwipe('down');
+  const handleLike = () => handleSwipe('up');
 
   if (loading) {
     return (
@@ -254,7 +257,7 @@ const DiscoverPage = () => {
           onSwipe={handleSwipe}
         />
 
-        <SwipeButtons onSwipe={handleSwipe} />
+        <SwipeButtons onPass={handlePass} onLike={handleLike} />
       </div>
     </div>
   );
