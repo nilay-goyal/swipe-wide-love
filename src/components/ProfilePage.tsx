@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { scrapeSocialProfiles } from '@/services/socialScraper';
+import { scrapeSocialProfiles, ScrapedData } from '@/services/socialScraper';
 
 interface UserProfile {
   id: string;
@@ -189,7 +189,11 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
         profile.linkedin_url !== editedProfile.linkedin_url ||
         profile.devpost_url !== editedProfile.devpost_url;
 
-      let scrapedData = {};
+      let scrapedData: ScrapedData = {
+        github_projects: [],
+        work_experience: [],
+        education_details: []
+      };
       
       if (urlsChanged) {
         toast({
