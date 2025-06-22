@@ -9,7 +9,7 @@ import { useMatching } from '@/hooks/useMatching';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
-interface Profile {
+interface DiscoverProfile {
   id: string;
   name: string;
   age: number;
@@ -27,7 +27,7 @@ const DiscoverPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { newMatch, recordSwipe, clearNewMatch } = useMatching();
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<DiscoverProfile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentMatch, setCurrentMatch] = useState<any>(null);
   const [swipedProfiles, setSwipedProfiles] = useState<Set<string>>(new Set());
@@ -60,7 +60,7 @@ const DiscoverPage = () => {
         github_url: profile.github_url,
         devpost_url: profile.devpost_url,
         linkedin_url: profile.linkedin_url,
-        github_projects: profile.github_projects || []
+        github_projects: Array.isArray(profile.github_projects) ? profile.github_projects : []
       }));
 
     setProfiles(transformedProfiles);
@@ -70,18 +70,23 @@ const DiscoverPage = () => {
   const fetchSwipedProfiles = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('swipes')
-      .select('swiped_id')
-      .eq('swiper_id', user.id);
+    try {
+      const { data, error } = await (supabase as any)
+        .from('swipes')
+        .select('swiped_id')
+        .eq('swiper_id', user.id);
 
-    if (error) {
-      console.error('Error fetching swiped profiles:', error);
-      return;
+      if (error) {
+        console.error('Error fetching swiped profiles:', error);
+        return;
+      }
+
+      const swipedIds = new Set(data?.map((swipe: any) => swipe.swiped_id) || []);
+      setSwipedProfiles(swipedIds);
+    } catch (error) {
+      console.error('Error fetching swipes:', error);
+      // Continue without filtering if swipes table doesn't exist yet
     }
-
-    const swipedIds = new Set(data?.map(swipe => swipe.swiped_id) || []);
-    setSwipedProfiles(swipedIds);
   };
 
   useEffect(() => {

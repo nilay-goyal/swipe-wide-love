@@ -2,8 +2,8 @@ import { useState, useRef } from 'react';
 import { MapPin, Github, Linkedin, ExternalLink } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
-interface Profile {
-  id: number;
+interface DiscoverProfile {
+  id: string;
   name: string;
   age: number;
   bio: string;
@@ -17,7 +17,7 @@ interface Profile {
 }
 
 interface ProfileDisplayProps {
-  profile: Profile;
+  profile: DiscoverProfile;
   onSwipe: (direction: 'up' | 'down') => void;
 }
 

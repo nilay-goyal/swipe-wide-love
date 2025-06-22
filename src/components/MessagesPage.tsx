@@ -6,7 +6,7 @@ import LiveMessaging from './LiveMessaging';
 import { useMatching } from '@/hooks/useMatching';
 import { useMessaging } from '@/hooks/useMessaging';
 
-interface Conversation {
+interface MessagesConversation {
   id: number;
   matchId: string;
   name: string;
@@ -22,7 +22,7 @@ const MessagesPage = () => {
   const { matches } = useMatching();
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<any>(null);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<MessagesConversation[]>([]);
 
   // Transform matches into conversations
   useEffect(() => {
