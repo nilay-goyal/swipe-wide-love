@@ -23,7 +23,7 @@ interface EventCardProps {
 
 const EventCard = ({ event, isJoined, onJoinEvent, formatDate }: EventCardProps) => {
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden card-hover">
+    <div className="bg-app-slate border border-app-white/20 rounded-2xl shadow-lg overflow-hidden card-hover">
       <div className="flex h-64">
         <div className="w-2/5 relative">
           <img
@@ -32,13 +32,13 @@ const EventCard = ({ event, isJoined, onJoinEvent, formatDate }: EventCardProps)
             className="w-full h-full object-cover"
           />
           <div className="absolute top-3 left-3">
-            <span className="bg-pink-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+            <span className="bg-app-amber text-app-black px-2 py-1 rounded-full text-xs font-medium">
               Hackathon
             </span>
           </div>
           {event.difficulty_level && (
             <div className="absolute bottom-3 right-3">
-              <span className="bg-black/70 text-white px-2 py-1 rounded-full text-sm font-medium">
+              <span className="bg-app-black/70 text-app-white px-2 py-1 rounded-full text-sm font-medium">
                 {event.difficulty_level}
               </span>
             </div>
@@ -47,15 +47,15 @@ const EventCard = ({ event, isJoined, onJoinEvent, formatDate }: EventCardProps)
 
         <div className="w-3/5 p-6 flex flex-col justify-between">
           <div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">{event.title}</h3>
-            <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+            <h3 className="text-xl font-bold text-app-amber mb-2">{event.title}</h3>
+            <p className="text-app-neutral text-sm mb-4 line-clamp-3">
               {event.description || 'Amazing hackathon opportunity to build, learn, and connect with fellow developers.'}
             </p>
             
             <div className="space-y-2">
               {event.date_start && (
-                <div className="flex items-center text-gray-500 text-sm">
-                  <Calendar className="w-4 h-4 mr-2" />
+                <div className="flex items-center text-app-neutral/80 text-sm">
+                  <Calendar className="w-4 h-4 mr-2 text-app-amber" />
                   <span>
                     {formatDate(event.date_start)}
                     {event.date_end && event.date_end !== event.date_start && 
@@ -65,14 +65,14 @@ const EventCard = ({ event, isJoined, onJoinEvent, formatDate }: EventCardProps)
                 </div>
               )}
               
-              <div className="flex items-center text-gray-500 text-sm">
-                <MapPin className="w-4 h-4 mr-2" />
+              <div className="flex items-center text-app-neutral/80 text-sm">
+                <MapPin className="w-4 h-4 mr-2 text-app-amber" />
                 <span>{event.location || 'Location TBA'}</span>
               </div>
               
               {event.application_deadline && (
-                <div className="flex items-center text-gray-500 text-sm">
-                  <Clock className="w-4 h-4 mr-2" />
+                <div className="flex items-center text-app-neutral/80 text-sm">
+                  <Clock className="w-4 h-4 mr-2 text-app-amber" />
                   <span>Apply by {formatDate(event.application_deadline)}</span>
                 </div>
               )}
@@ -84,8 +84,8 @@ const EventCard = ({ event, isJoined, onJoinEvent, formatDate }: EventCardProps)
               onClick={() => onJoinEvent(event.id, event.title, event.mlh_url)}
               className={`w-full py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
                 isJoined
-                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                  : 'dating-gradient text-white hover:opacity-90'
+                  ? 'bg-green-900/20 text-green-400 border border-green-400/30 hover:bg-green-900/30'
+                  : 'bg-app-amber text-app-black hover:bg-app-amber/90'
               }`}
             >
               {isJoined ? (
@@ -101,7 +101,7 @@ const EventCard = ({ event, isJoined, onJoinEvent, formatDate }: EventCardProps)
             </button>
             
             {isJoined && (
-              <p className="text-xs text-center text-gray-500 leading-tight">
+              <p className="text-xs text-center text-app-neutral/60 leading-tight">
                 ⚠️ Only mark as joined if you've been accepted into the hackathon
               </p>
             )}
@@ -111,7 +111,7 @@ const EventCard = ({ event, isJoined, onJoinEvent, formatDate }: EventCardProps)
                 href={event.mlh_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full py-2 text-center text-pink-600 hover:text-pink-700 font-medium text-sm border border-pink-200 rounded-lg hover:bg-pink-50 transition-colors"
+                className="block w-full py-2 text-center text-app-amber hover:text-app-amber/80 font-medium text-sm border border-app-amber/30 rounded-lg hover:bg-app-amber/10 transition-colors"
               >
                 View on MLH →
               </a>

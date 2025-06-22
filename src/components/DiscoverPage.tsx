@@ -154,8 +154,8 @@ const DiscoverPage = () => {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-        <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-lg text-gray-600">Finding amazing people for you...</p>
+        <div className="w-16 h-16 border-4 border-app-amber border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-lg text-app-neutral">Finding amazing people for you...</p>
       </div>
     );
   }
@@ -164,14 +164,14 @@ const DiscoverPage = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <div className="text-6xl">😕</div>
-        <h3 className="text-xl font-semibold text-gray-800">{error}</h3>
+        <h3 className="text-xl font-semibold text-app-amber">{error}</h3>
         <button
           onClick={() => {
             setLoading(true);
             setError(null);
             fetchProfiles();
           }}
-          className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+          className="px-4 py-2 bg-app-amber text-app-black rounded-lg hover:bg-app-amber/90 transition-colors"
         >
           Try Again
         </button>
@@ -183,8 +183,8 @@ const DiscoverPage = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <div className="text-6xl">🎉</div>
-        <h3 className="text-xl font-semibold text-gray-800">You've seen everyone!</h3>
-        <p className="text-gray-600 text-center max-w-md">
+        <h3 className="text-xl font-semibold text-app-amber">You've seen everyone!</h3>
+        <p className="text-app-neutral text-center max-w-md">
           Check back later for new profiles, or update your preferences to see more people.
         </p>
         <button
@@ -192,7 +192,7 @@ const DiscoverPage = () => {
             setLoading(true);
             fetchProfiles();
           }}
-          className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+          className="px-4 py-2 bg-app-amber text-app-black rounded-lg hover:bg-app-amber/90 transition-colors"
         >
           Refresh
         </button>

@@ -187,7 +187,7 @@ const EventsPage = () => {
   if (loading) {
     return (
       <div className="py-8 text-center">
-        <div className="text-2xl font-semibold text-gray-600">Loading hackathon events...</div>
+        <div className="text-2xl font-semibold text-app-neutral">Loading hackathon events...</div>
       </div>
     );
   }

@@ -3,6 +3,14 @@ import { useState, useRef } from 'react';
 import { MapPin, Github, Linkedin, ExternalLink } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
+interface GitHubProject {
+  name: string;
+  description?: string;
+  html_url?: string;
+  language?: string;
+  stargazers_count?: number;
+}
+
 interface Profile {
   id: number;
   name: string;
@@ -14,7 +22,7 @@ interface Profile {
   github_url?: string;
   devpost_url?: string;
   linkedin_url?: string;
-  github_projects?: any[];
+  github_projects?: GitHubProject[];
 }
 
 interface ProfileCardProps {
@@ -99,7 +107,7 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
     <div className="w-full max-w-4xl mx-auto select-none">
       <div 
         ref={cardRef}
-        className="bg-white rounded-3xl shadow-2xl overflow-hidden card-hover cursor-grab active:cursor-grabbing"
+        className="bg-app-slate border border-app-white/20 rounded-3xl shadow-2xl overflow-hidden card-hover cursor-grab active:cursor-grabbing"
         style={cardStyle}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -174,22 +182,22 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-800">{profile.name}</h2>
-                  <p className="text-xl text-gray-600">{profile.age} years old</p>
+                  <h2 className="text-3xl font-bold text-app-amber">{profile.name}</h2>
+                  <p className="text-xl text-app-neutral">{profile.age} years old</p>
                 </div>
-                <div className="flex items-center text-gray-500">
+                <div className="flex items-center text-app-neutral/70">
                   <MapPin className="w-4 h-4 mr-1" />
                   <span>{profile.distance} km away</span>
                 </div>
               </div>
 
-              <p className="text-gray-700 text-lg mb-6 leading-relaxed">{profile.bio}</p>
+              <p className="text-app-neutral text-lg mb-6 leading-relaxed">{profile.bio}</p>
 
               <div className="flex flex-wrap gap-2 mb-6">
                 {profile.interests.map((interest, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium"
+                    className="px-3 py-1 bg-app-amber/20 text-app-amber rounded-full text-sm font-medium border border-app-amber/30"
                   >
                     {interest}
                   </span>

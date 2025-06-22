@@ -63,13 +63,13 @@ const PremiumPage = () => {
   return (
     <div className="py-8">
       <div className="text-center mb-12">
-        <div className="premium-gradient w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center">
-          <Crown className="w-10 h-10 text-white" />
+        <div className="bg-app-amber w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center">
+          <Crown className="w-10 h-10 text-app-black" />
         </div>
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">
-          Upgrade to <span className="text-yellow-600">Premium</span>
+        <h1 className="text-4xl font-bold text-app-neutral mb-4">
+          Upgrade to <span className="text-app-amber">Premium</span>
         </h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+        <p className="text-xl text-app-neutral/70 max-w-2xl mx-auto">
           Get unlimited access to all features and find your perfect match faster
         </p>
       </div>
@@ -79,12 +79,12 @@ const PremiumPage = () => {
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <div key={index} className="bg-white rounded-2xl p-6 shadow-lg card-hover">
-                <div className="premium-gradient w-12 h-12 rounded-xl flex items-center justify-center mb-4">
-                  <Icon className="w-6 h-6 text-white" />
+              <div key={index} className="bg-app-slate border border-app-white/20 rounded-2xl p-6 shadow-lg card-hover">
+                <div className="bg-app-amber w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                  <Icon className="w-6 h-6 text-app-black" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <h3 className="text-lg font-semibold text-app-amber mb-2">{feature.title}</h3>
+                <p className="text-app-neutral">{feature.description}</p>
               </div>
             );
           })}
@@ -92,7 +92,7 @@ const PremiumPage = () => {
       </div>
 
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
+        <h2 className="text-2xl font-bold text-center text-app-amber mb-8">
           Choose Your Plan
         </h2>
         

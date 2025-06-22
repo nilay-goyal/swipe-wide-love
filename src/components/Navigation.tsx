@@ -1,4 +1,3 @@
-
 import { Heart, Calendar, Star, MessageSquare, Users } from 'lucide-react';
 import { useMatching } from '@/hooks/useMatching';
 
@@ -20,7 +19,7 @@ const Navigation = ({ currentPage, onPageChange }: NavigationProps) => {
 
   return (
     <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-      <div className="flex space-x-4 bg-white/90 backdrop-blur-md rounded-full px-6 py-3 shadow-2xl border border-white/20">
+      <div className="flex space-x-4 bg-app-slate/95 backdrop-blur-md rounded-full px-6 py-3 shadow-2xl border border-app-white/20">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
@@ -32,14 +31,14 @@ const Navigation = ({ currentPage, onPageChange }: NavigationProps) => {
               onClick={() => onPageChange(item.id)}
               className={`relative p-3 rounded-full transition-all duration-300 ${
                 isActive 
-                  ? 'dating-gradient text-white shadow-lg scale-110' 
-                  : 'text-gray-600 hover:text-pink-500 hover:bg-pink-50'
+                  ? 'bg-app-amber text-app-black shadow-lg scale-110' 
+                  : 'text-app-neutral hover:text-app-amber hover:bg-app-amber/10'
               }`}
             >
               <Icon className="w-6 h-6" />
               
               {item.id === 'messages' && messageCount > 0 && (
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-app-white text-xs rounded-full flex items-center justify-center">
                   {messageCount > 9 ? '9+' : messageCount}
                 </div>
               )}

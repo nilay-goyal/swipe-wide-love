@@ -68,7 +68,7 @@ const MessagesPage = () => {
   return (
     <div className="py-8">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-3xl shadow-lg overflow-hidden h-[600px]">
+        <div className="bg-app-slate border border-app-white/20 rounded-3xl shadow-lg overflow-hidden h-[600px]">
           <div className="flex h-full">
             <ConversationList
               conversations={conversations}
@@ -77,11 +77,11 @@ const MessagesPage = () => {
             />
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <div className="w-16 h-16 dating-gradient rounded-full mx-auto mb-4 flex items-center justify-center">
+                <div className="w-16 h-16 bg-app-amber rounded-full mx-auto mb-4 flex items-center justify-center">
                   <span className="text-2xl">💬</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Select a Match</h3>
-                <p className="text-gray-600">Choose a match to start messaging</p>
+                <h3 className="text-xl font-semibold text-app-amber mb-2">Select a Match</h3>
+                <p className="text-app-neutral">Choose a match to start messaging</p>
               </div>
             </div>
           </div>

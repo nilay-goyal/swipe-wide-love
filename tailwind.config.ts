@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
 	darkMode: ["class"],
@@ -19,6 +20,14 @@ export default {
 		},
 		extend: {
 			colors: {
+				// Custom color palette
+				'app-black': '#000000',
+				'app-slate': '#14213d',
+				'app-amber': '#fca311',
+				'app-neutral': '#e5e5e5',
+				'app-white': '#ffffff',
+				
+				// Existing shadcn/ui color system
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -92,5 +101,5 @@ export default {
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [tailwindcssAnimate],
 } satisfies Config;

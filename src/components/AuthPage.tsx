@@ -56,20 +56,20 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8">
+    <div className="min-h-screen bg-app-black flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-app-slate border border-app-white/20 rounded-3xl shadow-2xl p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold dating-gradient bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold text-app-amber mb-2">
             {isLogin ? 'Welcome Back' : 'Join Us'}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-app-neutral">
             {isLogin ? 'Sign in to find your perfect match' : 'Create your account to get started'}
           </p>
         </div>
 
         <form onSubmit={handleAuth} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-app-neutral mb-2">
               Email
             </label>
             <Input
@@ -79,12 +79,12 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="your@email.com"
-              className="w-full"
+              className="w-full bg-app-black border-app-white/30 text-app-neutral focus:border-app-amber focus:ring-app-amber"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-app-neutral mb-2">
               Password
             </label>
             <Input
@@ -94,14 +94,14 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              className="w-full"
+              className="w-full bg-app-black border-app-white/30 text-app-neutral focus:border-app-amber focus:ring-app-amber"
             />
           </div>
 
           <Button
             type="submit"
             disabled={loading}
-            className="w-full dating-gradient text-white py-3 rounded-lg hover:opacity-90 transition-opacity"
+            className="w-full bg-app-amber text-app-black py-3 rounded-lg hover:bg-app-amber/90 transition-colors font-semibold"
           >
             {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')}
           </Button>
@@ -110,7 +110,7 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
         <div className="mt-6 text-center">
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-pink-600 hover:text-pink-700 font-medium"
+            className="text-app-amber hover:text-app-amber/80 font-medium"
           >
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
           </button>
