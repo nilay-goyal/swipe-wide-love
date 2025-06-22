@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Star, Users, Plus, Trash2, Download, Code, Trophy, ChevronDown, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -53,6 +53,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   const [isImporting, setIsImporting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isSkillsDropdownOpen, setIsSkillsDropdownOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
@@ -469,6 +470,27 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     );
   };
 
+  const handlePhotoClick = () => {
+    if (isEditing && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setEditedProfile({
+          ...editedProfile,
+          photos: [result, ...(editedProfile.photos?.slice(1) || [])]
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   if (loading) {
     return (
       <div className="py-8 text-center">
@@ -578,7 +600,10 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               <CardContent className="p-6">
                 <div className="text-center mb-6">
                   <div className="relative inline-block">
-                    <Avatar className="w-40 h-40 border-4 border-pink-200 mx-auto">
+                    <Avatar 
+                      className={`w-40 h-40 border-4 border-pink-200 mx-auto ${isEditing ? 'cursor-pointer hover:opacity-75 transition-opacity' : ''}`}
+                      onClick={handlePhotoClick}
+                    >
                       <AvatarImage
                         src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'}
                         alt="Profile main"
@@ -588,7 +613,19 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                         {profile.name?.charAt(0) || 'A'}
                       </AvatarFallback>
                     </Avatar>
+                    {isEditing && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 hover:opacity-100 transition-opacity cursor-pointer" onClick={handlePhotoClick}>
+                        <Camera className="w-8 h-8 text-white" />
+                      </div>
+                    )}
                   </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
                   <h2 className="text-2xl font-bold text-gray-800 mt-4">
                     {profile.name || 'Anonymous'}
                   </h2>
