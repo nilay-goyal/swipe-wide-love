@@ -19,7 +19,7 @@ interface HackathonEvent {
 interface EventCardProps {
   event: HackathonEvent;
   isJoined: boolean;
-  onJoinEvent: (eventId: string, eventTitle: string) => void;
+  onJoinEvent: (eventId: string, eventTitle: string, teammateName?: string) => void;
   formatDate: (dateString: string | null) => string;
 }
 

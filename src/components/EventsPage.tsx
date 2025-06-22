@@ -53,13 +53,25 @@ const EventsPage = () => {
     if (!user) return;
     
     try {
+      // Use rpc or raw query since the table might not be in types yet
       const { data, error } = await supabase
-        .from('hackathon_participants')
-        .select('event_id')
-        .eq('user_id', user.id);
+        .rpc('get_user_participations', { user_uuid: user.id })
+        .then(result => {
+          if (result.error && result.error.code === '42883') {
+            // Function doesn't exist, fallback to direct query
+            return supabase
+              .from('hackathon_participants' as any)
+              .select('event_id')
+              .eq('user_id', user.id);
+          }
+          return result;
+        });
 
-      if (error && error.code !== 'PGRST116') throw error;
-      setJoinedEventIds(data?.map(p => p.event_id) || []);
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching user participation:', error);
+        return;
+      }
+      setJoinedEventIds(data?.map((p: any) => p.event_id) || []);
     } catch (error) {
       console.error('Error fetching user participation:', error);
     }
@@ -114,8 +126,9 @@ const EventsPage = () => {
       const member1Id = user.id < teammateId ? user.id : teammateId;
       const member2Id = user.id < teammateId ? teammateId : user.id;
 
+      // Use raw SQL query since types aren't updated yet
       const { error } = await supabase
-        .from('hackathon_teams')
+        .from('hackathon_teams' as any)
         .insert({
           event_id: eventId,
           member1_id: member1Id,
@@ -160,7 +173,7 @@ const EventsPage = () => {
       // Remove participation
       try {
         const { error } = await supabase
-          .from('hackathon_participants')
+          .from('hackathon_participants' as any)
           .delete()
           .eq('user_id', user.id)
           .eq('event_id', eventId);
@@ -185,7 +198,7 @@ const EventsPage = () => {
       // Join hackathon
       try {
         const { error } = await supabase
-          .from('hackathon_participants')
+          .from('hackathon_participants' as any)
           .insert({
             user_id: user.id,
             event_id: eventId,
