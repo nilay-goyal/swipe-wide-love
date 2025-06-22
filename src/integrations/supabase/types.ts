@@ -420,6 +420,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_gemini_prompts: {
+        Row: {
+          created_at: string
+          hackathon_id: string
+          id: string
+          prompt: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hackathon_id: string
+          id?: string
+          prompt: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hackathon_id?: string
+          id?: string
+          prompt?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_gemini_prompts_hackathon"
+            columns: ["hackathon_id"]
+            isOneToOne: false
+            referencedRelation: "hackathon_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
