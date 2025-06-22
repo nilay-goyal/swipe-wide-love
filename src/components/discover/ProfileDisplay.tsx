@@ -150,9 +150,9 @@ const ProfileDisplay = ({ profile, onSwipe }: ProfileDisplayProps) => {
                   </div>
                 </div>
 
-                <p className="text-app-neutral text-lg mb-6 leading-relaxed">{profile.bio}</p>
+                <p className="text-app-neutral text-lg mb-2 leading-relaxed">{profile.bio}</p>
 
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="flex flex-wrap gap-2 mb-2">
                   {profile.interests.map((interest, index) => (
                     <span
                       key={index}
@@ -166,7 +166,7 @@ const ProfileDisplay = ({ profile, onSwipe }: ProfileDisplayProps) => {
                 {/* GitHub Projects Preview */}
                 {profile.github_projects && profile.github_projects.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-app-amber mb-3">Recent Projects</h3>
+                    <h3 className="font-semibold text-app-amber mb-1">Recent Projects</h3>
                     <div className="space-y-2">
                       {profile.github_projects.slice(0, 2).map((project: any, index: number) => (
                         <div key={index} className="bg-app-black border border-app-white/20 rounded-lg p-3">

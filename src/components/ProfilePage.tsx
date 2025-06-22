@@ -295,7 +295,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
       const projectsCount = scrapedData.github_projects?.length || 0;
       const workCount = scrapedData.work_experience?.length || 0;
       const educationCount = scrapedData.education_details?.length || 0;
-
+      
       toast({
         title: "Data imported successfully! ✨",
         description: `Found ${projectsCount} projects, ${workCount} work experiences, and ${educationCount} education entries${scrapedData.major ? `. Detected major: ${scrapedData.major}` : ''}`,
@@ -336,21 +336,21 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
     try {
       const profileData = {
-        id: user.id,
+          id: user.id,
         name: editedProfile.name?.trim(),
-        age: editedProfile.age,
+          age: editedProfile.age,
         bio: editedProfile.bio?.trim(),
-        location: editedProfile.location,
-        photos: editedProfile.photos,
-        interests: editedProfile.interests,
-        occupation: editedProfile.occupation,
-        education: editedProfile.education,
-        github_url: editedProfile.github_url,
-        devpost_url: editedProfile.devpost_url,
-        linkedin_url: editedProfile.linkedin_url,
-        github_projects: editedProfile.github_projects,
-        work_experience: editedProfile.work_experience,
-        education_details: editedProfile.education_details,
+          location: editedProfile.location,
+          photos: editedProfile.photos,
+          interests: editedProfile.interests,
+          occupation: editedProfile.occupation,
+          education: editedProfile.education,
+          github_url: editedProfile.github_url,
+          devpost_url: editedProfile.devpost_url,
+          linkedin_url: editedProfile.linkedin_url,
+          github_projects: editedProfile.github_projects,
+          work_experience: editedProfile.work_experience,
+          education_details: editedProfile.education_details,
         // New hackathon fields
         linkedin: editedProfile.linkedin,
         github: editedProfile.github,
@@ -598,27 +598,27 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
             {/* Basic Profile Info */}
             <Card className="bg-app-slate border-app-white/20">
               <CardContent className="p-6">
-                <div className="text-center mb-6">
-                  <div className="relative inline-block">
+              <div className="text-center mb-6">
+                <div className="relative inline-block">
                     <Avatar 
                       className={`w-40 h-40 border-4 border-app-amber mx-auto ${isEditing ? 'cursor-pointer hover:opacity-75 transition-opacity' : ''}`}
                       onClick={handlePhotoClick}
                     >
-                      <AvatarImage
-                        src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'}
-                        alt="Profile main"
-                        className="object-cover"
-                      />
+                    <AvatarImage
+                      src={profile.photos?.[0] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face'}
+                      alt="Profile main"
+                      className="object-cover"
+                    />
                       <AvatarFallback className="text-3xl bg-app-slate text-app-amber">
                         {profile.name?.charAt(0) || 'A'}
-                      </AvatarFallback>
-                    </Avatar>
-                    {isEditing && (
+                    </AvatarFallback>
+                  </Avatar>
+                  {isEditing && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 hover:opacity-100 transition-opacity cursor-pointer" onClick={handlePhotoClick}>
-                        <Camera className="w-8 h-8 text-white" />
-                      </div>
-                    )}
-                  </div>
+                      <Camera className="w-8 h-8 text-white" />
+                    </div>
+                  )}
+                </div>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -632,7 +632,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                   <p className="text-app-neutral/70">
                     {profile.age ? `Age ${profile.age}` : 'Age not specified'}
                   </p>
-                </div>
+              </div>
 
                 {isEditing ? (
                   <div className="space-y-4">
@@ -640,27 +640,27 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                       <label className="block text-sm font-medium text-app-neutral mb-1">
                         Name <span className="text-red-400">*</span>
                       </label>
-                      <input
-                        type="text"
-                        value={editedProfile.name || ''}
-                        onChange={(e) => setEditedProfile({...editedProfile, name: e.target.value})}
+                  <input
+                    type="text"
+                    value={editedProfile.name || ''}
+                    onChange={(e) => setEditedProfile({...editedProfile, name: e.target.value})}
                         className="w-full px-3 py-2 bg-app-black border border-app-white/30 text-app-neutral rounded-lg focus:outline-none focus:ring-2 focus:ring-app-amber focus:border-app-amber"
                         placeholder="Your name"
-                      />
+                  />
                     </div>
-                    
+                
                     <div>
                       <label className="block text-sm font-medium text-app-neutral mb-1">
                         Age <span className="text-red-400">*</span>
                       </label>
-                      <input
-                        type="number"
-                        value={editedProfile.age || ''}
-                        onChange={(e) => setEditedProfile({...editedProfile, age: parseInt(e.target.value) || null})}
+                  <input
+                    type="number"
+                    value={editedProfile.age || ''}
+                    onChange={(e) => setEditedProfile({...editedProfile, age: parseInt(e.target.value) || null})}
                         className="w-full px-3 py-2 bg-app-black border border-app-white/30 text-app-neutral rounded-lg focus:outline-none focus:ring-2 focus:ring-app-amber focus:border-app-amber"
                         placeholder="Your age"
-                      />
-                    </div>
+                  />
+              </div>
                   </div>
                 ) : null}
               </CardContent>
@@ -679,13 +679,13 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                     <label className="block text-sm font-medium text-app-neutral mb-1">
                       Bio <span className="text-red-400">*</span>
                     </label>
-                    <textarea
-                      value={editedProfile.bio || ''}
-                      onChange={(e) => setEditedProfile({...editedProfile, bio: e.target.value})}
-                      rows={4}
+                  <textarea
+                    value={editedProfile.bio || ''}
+                    onChange={(e) => setEditedProfile({...editedProfile, bio: e.target.value})}
+                    rows={4}
                       className="w-full px-3 py-2 bg-app-black border border-app-white/30 text-app-neutral rounded-lg focus:outline-none focus:ring-2 focus:ring-app-amber focus:border-app-amber resize-none"
-                      placeholder="Tell people about yourself..."
-                    />
+                    placeholder="Tell people about yourself..."
+                  />
                   </div>
                 ) : (
                   <p className="text-app-neutral">
@@ -695,7 +695,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               </CardContent>
             </Card>
 
-            {/* Location */}
+              {/* Location */}
             <Card className="bg-app-slate border-app-white/20">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -705,10 +705,10 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               </CardHeader>
               <CardContent>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={editedProfile.location || ''}
-                    onChange={(e) => setEditedProfile({...editedProfile, location: e.target.value})}
+                    <input
+                      type="text"
+                      value={editedProfile.location || ''}
+                      onChange={(e) => setEditedProfile({...editedProfile, location: e.target.value})}
                     className="w-full px-3 py-2 bg-app-black border border-app-white/30 text-app-neutral rounded-lg focus:outline-none focus:ring-2 focus:ring-app-amber focus:border-app-amber"
                     placeholder="Your location"
                   />
@@ -738,9 +738,9 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {isEditing ? (
-                  <div className="space-y-4">
-                    <div>
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div>
                       <label className="block text-sm font-medium text-app-neutral mb-1">GitHub URL</label>
                       <input
                         type="url"
@@ -751,7 +751,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                       />
                     </div>
                     
-                    <div>
+                  <div>
                       <label className="block text-sm font-medium text-app-neutral mb-1">LinkedIn URL</label>
                       <input
                         type="url"
@@ -762,7 +762,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                       />
                     </div>
                     
-                    <div>
+                  <div>
                       <label className="block text-sm font-medium text-app-neutral mb-1">DevPost URL</label>
                       <input
                         type="url"
@@ -777,53 +777,53 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                       <p className="text-sm text-app-amber">
                         💡 Add your social profile URLs above, then click "Import Data" to automatically populate your projects, work experience, and education details.
                       </p>
-                    </div>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {profile.github_url ? (
-                      <a href={profile.github_url} target="_blank" rel="noopener noreferrer" 
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {profile.github_url ? (
+                    <a href={profile.github_url} target="_blank" rel="noopener noreferrer" 
                          className="flex items-center space-x-2 p-2 bg-app-black border border-app-white/20 rounded-lg text-app-neutral hover:bg-app-slate transition-colors">
                         <Github className="w-4 h-4 text-app-amber" />
                         <span>GitHub</span>
                         <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ) : (
+                    </a>
+                  ) : (
                       <div className="flex items-center space-x-2 p-2 bg-app-black/50 border border-app-white/10 rounded-lg text-app-neutral/50">
                         <Github className="w-4 h-4" />
-                        <span>No GitHub linked</span>
-                      </div>
-                    )}
+                      <span>No GitHub linked</span>
+                    </div>
+                  )}
                     
-                    {profile.linkedin_url ? (
-                      <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer"
+                  {profile.linkedin_url ? (
+                    <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer"
                          className="flex items-center space-x-2 p-2 bg-app-black border border-app-white/20 rounded-lg text-app-neutral hover:bg-app-slate transition-colors">
                         <Linkedin className="w-4 h-4 text-app-amber" />
                         <span>LinkedIn</span>
                         <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ) : (
+                    </a>
+                  ) : (
                       <div className="flex items-center space-x-2 p-2 bg-app-black/50 border border-app-white/10 rounded-lg text-app-neutral/50">
                         <Linkedin className="w-4 h-4" />
-                        <span>No LinkedIn linked</span>
-                      </div>
-                    )}
+                      <span>No LinkedIn linked</span>
+                    </div>
+                  )}
                     
-                    {profile.devpost_url ? (
-                      <a href={profile.devpost_url} target="_blank" rel="noopener noreferrer"
+                  {profile.devpost_url ? (
+                    <a href={profile.devpost_url} target="_blank" rel="noopener noreferrer"
                          className="flex items-center space-x-2 p-2 bg-app-black border border-app-white/20 rounded-lg text-app-neutral hover:bg-app-slate transition-colors">
                         <ExternalLink className="w-4 h-4 text-app-amber" />
                         <span>DevPost</span>
                         <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ) : (
+                    </a>
+                  ) : (
                       <div className="flex items-center space-x-2 p-2 bg-app-black/50 border border-app-white/10 rounded-lg text-app-neutral/50">
                         <ExternalLink className="w-4 h-4" />
-                        <span>No DevPost linked</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      <span>No DevPost linked</span>
+                    </div>
+                  )}
+                </div>
+              )}
               </CardContent>
             </Card>
 
@@ -836,7 +836,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                  </CardTitle>
                </CardHeader>
                <CardContent>
-                 {isEditing ? (
+              {isEditing ? (
                    <div className="space-y-4">
                      {/* Custom Multi-Select Dropdown */}
                      <div className="relative">
@@ -903,7 +903,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                      {/* Bulk entry for multiple skills */}
                      <div className="space-y-2">
                        <label className="block text-sm font-medium text-app-neutral">Or add multiple skills at once</label>
-                       <textarea
+                <textarea
                          placeholder="Enter skills separated by commas, then press Enter or click away..."
                          rows={2}
                          className="w-full px-3 py-2 bg-app-black border border-app-white/30 text-app-neutral rounded-lg focus:outline-none focus:ring-2 focus:ring-app-amber focus:border-app-amber resize-none"
@@ -938,22 +938,22 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                        <p className="text-xs text-app-neutral/70">Example: React, Python, Machine Learning, Docker</p>
                      </div>
                    </div>
-                 ) : (
-                   <div className="flex flex-wrap gap-2">
+              ) : (
+                <div className="flex flex-wrap gap-2">
                      {(profile.skills && profile.skills.length > 0) ? (
                        profile.skills.map((skill, index) => (
-                         <span
-                           key={index}
+                      <span
+                        key={index}
                            className="px-2 py-1 bg-app-amber/20 text-app-amber border border-app-amber/30 rounded text-sm"
-                         >
+                      >
                            {skill}
-                         </span>
-                       ))
-                     ) : (
+                      </span>
+                    ))
+                  ) : (
                        <span className="text-app-neutral/50 text-sm">No skills added yet</span>
-                     )}
-                   </div>
-                 )}
+                  )}
+                </div>
+              )}
                </CardContent>
              </Card>
 
@@ -966,7 +966,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {isEditing ? (
+              {isEditing ? (
                   <div>
                     <label className="block text-sm font-medium text-app-neutral mb-2">Rate your skills (1-3 stars)</label>
                     <div className="bg-app-black border border-app-white/20 rounded-lg p-4 space-y-2">
@@ -979,8 +979,8 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                           onChange={(rating) => handleSkillRatingChange(key, rating)}
                         />
                       ))}
-                    </div>
-                  </div>
+                </div>
+                      </div>
                 ) : (
                   <div className="bg-app-black border border-app-white/20 rounded-lg p-4 space-y-2">
                     {skillCategories.map(({ key, label }) => (
@@ -1008,7 +1008,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               <CardContent>
                 {isEditing ? (
                   <div className="space-y-4">
-                    {/* Education */}
+            {/* Education */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-app-neutral mb-1">Major</label>
@@ -1022,7 +1022,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
+              </div>
                       
                       <div>
                         <label className="block text-sm font-medium text-app-neutral mb-1">Year</label>
@@ -1049,8 +1049,8 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                         placeholder="Your school name"
                       />
                     </div>
-                  </div>
-                ) : (
+                </div>
+              ) : (
                   <div className="space-y-4">
                     {/* Display education info */}
                     {(profile.major || profile.school || profile.year) ? (
@@ -1060,19 +1060,19 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                           {profile.major && <p>Major: {profile.major}</p>}
                           {profile.school && <p>School: {profile.school}</p>}
                           {profile.year && <p>Year: {profile.year}</p>}
-                        </div>
                       </div>
-                    ) : (
-                      <p className="text-app-neutral/50 text-center py-4">No education information added yet</p>
-                    )}
                   </div>
+                ) : (
+                      <p className="text-app-neutral/50 text-center py-4">No education information added yet</p>
+              )}
+            </div>
                 )}
               </CardContent>
             </Card>
-          </div>
+              </div>
 
           {/* Right Column */}
-          <div className="space-y-6">
+                <div className="space-y-6">
             {/* Work Experience */}
             <Card className="bg-app-slate border-app-white/20">
               <CardHeader>
@@ -1092,10 +1092,10 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                         {job.description && (
                           <p className="text-sm text-app-neutral/80 mt-1">{job.description}</p>
                         )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
+                    </div>
+                  ))}
+                </div>
+              ) : (
                   <p className="text-app-neutral/50 text-center py-4">No work experience added yet</p>
                 )}
               </CardContent>
@@ -1121,20 +1121,20 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                               <span className="inline-block text-xs px-2 py-1 bg-app-amber/20 text-app-amber border border-app-amber/30 rounded">
                                 Hackathon
                               </span>
-                            )}
-                          </div>
+                          )}
+                        </div>
                           <span className="text-sm text-app-neutral/60 flex items-center">
                             <Star className="w-3 h-3 mr-1 text-app-amber" />
                             {project.stars || 0}
-                          </span>
+                              </span>
                         </div>
                         <p className="text-app-neutral/80 text-sm mb-2">
                           {project.description || 'No description available'}
                         </p>
                         {project.event && (
                           <p className="text-xs text-app-neutral/60 mb-2">Event: {project.event}</p>
-                        )}
-                        {project.awards && project.awards.length > 0 && (
+                            )}
+                            {project.awards && project.awards.length > 0 && (
                           <div className="mb-2">
                             {project.awards.map((award: string, awardIndex: number) => (
                               <span key={awardIndex} className="inline-block text-xs px-2 py-1 bg-app-amber/20 text-app-amber border border-app-amber/30 rounded mr-1">
@@ -1146,8 +1146,8 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                         {project.language && (
                           <span className="inline-block text-xs px-2 py-1 bg-app-slate text-app-neutral border border-app-white/20 rounded">
                             {project.language}
-                          </span>
-                        )}
+                            </span>
+                          )}
                       </div>
                     ))}
                   </div>
@@ -1155,7 +1155,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                   <div className="text-center py-8">
                     <p className="text-app-neutral/50 mb-2">No projects found. Connect your GitHub and DevPost to import repositories and hackathon projects automatically.</p>
                   </div>
-                )}
+              )}
               </CardContent>
             </Card>
           </div>
