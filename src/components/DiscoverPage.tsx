@@ -1,10 +1,16 @@
+
 import { useState, useEffect } from 'react';
 import ProfileDisplay from './discover/ProfileDisplay';
 import SwipeButtons from './discover/SwipeButtons';
+import MatchNotification from './MatchNotification';
+import LiveMessaging from './LiveMessaging';
 import { useToast } from '@/hooks/use-toast';
+import { useMatching } from '@/hooks/useMatching';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Profile {
-  id: number;
+  id: string;
   name: string;
   age: number;
   bio: string;
@@ -18,129 +24,123 @@ interface Profile {
 }
 
 const DiscoverPage = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
+  const { newMatch, recordSwipe, clearNewMatch } = useMatching();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentMatch, setCurrentMatch] = useState<any>(null);
+  const [swipedProfiles, setSwipedProfiles] = useState<Set<string>>(new Set());
 
-  const sampleProfiles: Profile[] = [
-    {
-      id: 1,
-      name: "Emma",
-      age: 26,
-      bio: "Adventure seeker, coffee enthusiast, and dog lover. Looking for someone to explore the city with and share meaningful conversations.",
-      distance: 3,
-      photos: [
-        "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=500&h=600&fit=crop&crop=face",
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&h=600&fit=crop&crop=face"
-      ],
-      interests: ["Travel", "Photography", "Yoga", "Books"],
-      github_url: "https://github.com/emma-dev",
-      linkedin_url: "https://linkedin.com/in/emma-smith",
-      github_projects: [
-        {
-          name: "travel-planner",
-          description: "A React app for planning adventures",
-          language: "JavaScript",
-          stars: 42
-        },
-        {
-          name: "photo-gallery",
-          description: "Beautiful photo showcase platform",
-          language: "TypeScript",
-          stars: 28
-        }
-      ]
-    },
-    {
-      id: 2,
-      name: "Alex",
-      age: 29,
-      bio: "Passionate chef and weekend hiker. I believe the best conversations happen over good food and under starry skies.",
-      distance: 7,
-      photos: [
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=600&fit=crop&crop=face",
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&h=600&fit=crop&crop=face"
-      ],
-      interests: ["Cooking", "Hiking", "Music", "Movies"],
-      github_url: "https://github.com/alex-chef",
-      devpost_url: "https://devpost.com/alex-chef",
-      linkedin_url: "https://linkedin.com/in/alex-johnson",
-      github_projects: [
-        {
-          name: "recipe-finder",
-          description: "AI-powered recipe recommendation app",
-          language: "Python",
-          stars: 67
-        },
-        {
-          name: "hiking-tracker",
-          description: "Track your mountain adventures",
-          language: "React Native",
-          stars: 35
-        }
-      ]
-    },
-    {
-      id: 3,
-      name: "Sofia",
-      age: 24,
-      bio: "Artist by day, dancer by night. Looking for someone who appreciates creativity and isn't afraid to be spontaneous.",
-      distance: 5,
-      photos: [
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&h=600&fit=crop&crop=face",
-        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&h=600&fit=crop&crop=face"
-      ],
-      interests: ["Art", "Dancing", "Music", "Fashion"],
-      github_url: "https://github.com/sofia-art",
-      devpost_url: "https://devpost.com/sofia-creates",
-      github_projects: [
-        {
-          name: "digital-canvas",
-          description: "Web-based digital art platform",
-          language: "Vue.js",
-          stars: 89
-        },
-        {
-          name: "dance-choreographer",
-          description: "App for creating dance routines",
-          language: "Flutter",
-          stars: 51
-        }
-      ]
+  // Fetch profiles from Supabase
+  const fetchProfiles = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .neq('id', user.id);
+
+    if (error) {
+      console.error('Error fetching profiles:', error);
+      return;
     }
-  ];
+
+    // Transform to match expected format and filter out swiped profiles
+    const transformedProfiles = (data || [])
+      .filter(profile => !swipedProfiles.has(profile.id))
+      .map(profile => ({
+        id: profile.id,
+        name: profile.name || 'Anonymous',
+        age: profile.age || 25,
+        bio: profile.bio || 'No bio available',
+        distance: Math.floor(Math.random() * 20) + 1,
+        photos: profile.photos || ['https://images.unsplash.com/photo-1494790108755-2616b612b786?w=500&h=600&fit=crop&crop=face'],
+        interests: profile.interests || [],
+        github_url: profile.github_url,
+        devpost_url: profile.devpost_url,
+        linkedin_url: profile.linkedin_url,
+        github_projects: profile.github_projects || []
+      }));
+
+    setProfiles(transformedProfiles);
+  };
+
+  // Fetch user's existing swipes to filter them out
+  const fetchSwipedProfiles = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('swipes')
+      .select('swiped_id')
+      .eq('swiper_id', user.id);
+
+    if (error) {
+      console.error('Error fetching swiped profiles:', error);
+      return;
+    }
+
+    const swipedIds = new Set(data?.map(swipe => swipe.swiped_id) || []);
+    setSwipedProfiles(swipedIds);
+  };
 
   useEffect(() => {
-    setProfiles(sampleProfiles);
-  }, []);
+    fetchSwipedProfiles();
+  }, [user]);
 
-  const handleSwipe = (direction: 'up' | 'down') => {
+  useEffect(() => {
+    fetchProfiles();
+  }, [user, swipedProfiles]);
+
+  const handleSwipe = async (direction: 'up' | 'down') => {
     const currentProfile = profiles[currentIndex];
+    if (!currentProfile) return;
+
+    const isLike = direction === 'up';
     
-    if (direction === 'up') {
-      const isMatch = Math.random() > 0.5;
-      
-      if (isMatch) {
-        toast({
-          title: "It's a Match! 💕",
-          description: `You and ${currentProfile.name} liked each other!`,
-          duration: 3000,
-        });
-      } else {
-        toast({
-          title: "Like sent! 💖",
-          description: `You liked ${currentProfile.name}`,
-          duration: 2000,
-        });
-      }
+    // Record the swipe
+    await recordSwipe(currentProfile.id, isLike);
+    
+    // Add to swiped profiles set
+    setSwipedProfiles(prev => new Set([...prev, currentProfile.id]));
+
+    if (isLike) {
+      toast({
+        title: "Like sent! 💖",
+        description: `You liked ${currentProfile.name}`,
+        duration: 2000,
+      });
     }
 
+    // Move to next profile
     if (currentIndex < profiles.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      setCurrentIndex(0); // Loop back to start instead of showing empty state
+      // Refresh profiles when we reach the end
+      setCurrentIndex(0);
+      setTimeout(() => {
+        fetchProfiles();
+      }, 1000);
     }
   };
+
+  const handleStartChat = (match: any) => {
+    setCurrentMatch(match);
+    clearNewMatch();
+  };
+
+  const handleBackFromChat = () => {
+    setCurrentMatch(null);
+  };
+
+  if (currentMatch) {
+    return (
+      <LiveMessaging
+        match={currentMatch}
+        onBack={handleBackFromChat}
+      />
+    );
+  }
 
   if (profiles.length === 0) {
     return (
@@ -171,6 +171,12 @@ const DiscoverPage = () => {
       <SwipeButtons 
         onPass={() => handleSwipe('down')}
         onLike={() => handleSwipe('up')}
+      />
+
+      <MatchNotification
+        match={newMatch}
+        onClose={clearNewMatch}
+        onStartChat={handleStartChat}
       />
     </div>
   );

@@ -1,77 +1,68 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ConversationList from './messages/ConversationList';
 import ChatWindow from './messages/ChatWindow';
-
-interface Message {
-  id: number;
-  senderId: number;
-  text: string;
-  timestamp: string;
-}
+import LiveMessaging from './LiveMessaging';
+import { useMatching } from '@/hooks/useMatching';
+import { useMessaging } from '@/hooks/useMessaging';
 
 interface Conversation {
   id: number;
-  matchId: number;
+  matchId: string;
   name: string;
   photo: string;
   lastMessage: string;
   lastMessageTime: string;
   unread: boolean;
   isOnline: boolean;
-  messages: Message[];
+  messages: any[];
 }
 
 const MessagesPage = () => {
+  const { matches } = useMatching();
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
-  const [conversations, setConversations] = useState<Conversation[]>([
-    {
-      id: 1,
-      matchId: 1,
-      name: "Emma",
-      photo: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face",
-      lastMessage: "That sounds like a great plan! 😊",
-      lastMessageTime: "2m ago",
-      unread: true,
+  const [selectedMatch, setSelectedMatch] = useState<any>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  // Transform matches into conversations
+  useEffect(() => {
+    const transformedConversations = matches.map((match, index) => ({
+      id: index + 1,
+      matchId: match.id,
+      name: match.matched_user?.name || 'Unknown',
+      photo: match.matched_user?.photos?.[0] || '/placeholder.svg',
+      lastMessage: "Start your conversation!",
+      lastMessageTime: "now",
+      unread: false,
       isOnline: true,
-      messages: [
-        { id: 1, senderId: 1, text: "Hey! Thanks for the match 😊", timestamp: "10:30 AM" },
-        { id: 2, senderId: 0, text: "Hi Emma! I love your travel photos!", timestamp: "10:32 AM" },
-        { id: 3, senderId: 1, text: "That sounds like a great plan! 😊", timestamp: "11:18 AM" }
-      ]
+      messages: []
+    }));
+
+    setConversations(transformedConversations);
+  }, [matches]);
+
+  const handleSelectConversation = (id: number) => {
+    setSelectedConversation(id);
+    const conversation = conversations.find(c => c.id === id);
+    if (conversation) {
+      const match = matches.find(m => m.id === conversation.matchId);
+      setSelectedMatch(match);
     }
-  ]);
-
-  const selectedConv = conversations.find(c => c.id === selectedConversation);
-
-  const handleSendMessage = (messageText: string) => {
-    if (!selectedConversation) return;
-
-    const updatedConversations = conversations.map(conv => {
-      if (conv.id === selectedConversation) {
-        const newMsg: Message = {
-          id: conv.messages.length + 1,
-          senderId: 0,
-          text: messageText,
-          timestamp: new Date().toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit',
-            hour12: true 
-          })
-        };
-        
-        return {
-          ...conv,
-          messages: [...conv.messages, newMsg],
-          lastMessage: messageText,
-          lastMessageTime: "now"
-        };
-      }
-      return conv;
-    });
-
-    setConversations(updatedConversations);
   };
+
+  const handleBackFromLiveChat = () => {
+    setSelectedMatch(null);
+    setSelectedConversation(null);
+  };
+
+  if (selectedMatch) {
+    return (
+      <LiveMessaging
+        match={selectedMatch}
+        onBack={handleBackFromLiveChat}
+      />
+    );
+  }
 
   return (
     <div className="py-8">
@@ -81,12 +72,17 @@ const MessagesPage = () => {
             <ConversationList
               conversations={conversations}
               selectedConversation={selectedConversation}
-              onSelectConversation={setSelectedConversation}
+              onSelectConversation={handleSelectConversation}
             />
-            <ChatWindow
-              conversation={selectedConv || null}
-              onSendMessage={handleSendMessage}
-            />
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-16 h-16 dating-gradient rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-2xl">💬</span>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Select a Match</h3>
+                <p className="text-gray-600">Choose a match to start messaging</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

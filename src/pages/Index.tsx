@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import Navigation from '../components/Navigation';
@@ -68,7 +67,6 @@ const Index = () => {
       <Navigation 
         currentPage={currentPage} 
         onPageChange={setCurrentPage}
-        messageCount={3}
       />
     </div>
   );

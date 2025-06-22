@@ -1,13 +1,15 @@
 
 import { Heart, Calendar, Star, MessageSquare, Users } from 'lucide-react';
+import { useMatching } from '@/hooks/useMatching';
 
 interface NavigationProps {
   currentPage: string;
   onPageChange: (page: string) => void;
-  messageCount?: number;
 }
 
-const Navigation = ({ currentPage, onPageChange, messageCount = 0 }: NavigationProps) => {
+const Navigation = ({ currentPage, onPageChange }: NavigationProps) => {
+  const { matches } = useMatching();
+  
   const navItems = [
     { id: 'discover', label: 'Discover', icon: Heart },
     { id: 'events', label: 'Events', icon: Calendar },
@@ -22,6 +24,7 @@ const Navigation = ({ currentPage, onPageChange, messageCount = 0 }: NavigationP
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
+          const messageCount = item.id === 'messages' ? matches.length : 0;
           
           return (
             <button
