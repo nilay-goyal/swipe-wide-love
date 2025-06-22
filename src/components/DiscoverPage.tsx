@@ -81,7 +81,10 @@ const DiscoverPage = () => {
         return;
       }
 
-      const swipedIds = new Set(data?.map((swipe: any) => swipe.swiped_id) || []);
+      // Properly type the swipes data
+      const swipedIds = new Set<string>(
+        (data as Array<{ swiped_id: string }>)?.map((swipe) => swipe.swiped_id) || []
+      );
       setSwipedProfiles(swipedIds);
     } catch (error) {
       console.error('Error fetching swipes:', error);

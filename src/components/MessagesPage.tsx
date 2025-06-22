@@ -8,7 +8,7 @@ import { useMessaging } from '@/hooks/useMessaging';
 
 interface MessagesConversation {
   id: number;
-  matchId: string;
+  matchId: number; // Changed from string to number to match ConversationList interface
   name: string;
   photo: string;
   lastMessage: string;
@@ -28,7 +28,7 @@ const MessagesPage = () => {
   useEffect(() => {
     const transformedConversations = matches.map((match, index) => ({
       id: index + 1,
-      matchId: match.id,
+      matchId: index + 1, // Use numeric ID instead of string
       name: match.matched_user?.name || 'Unknown',
       photo: match.matched_user?.photos?.[0] || '/placeholder.svg',
       lastMessage: "Start your conversation!",
@@ -45,7 +45,8 @@ const MessagesPage = () => {
     setSelectedConversation(id);
     const conversation = conversations.find(c => c.id === id);
     if (conversation) {
-      const match = matches.find(m => m.id === conversation.matchId);
+      // Find the match by index since we're using index-based IDs
+      const match = matches[conversation.id - 1];
       setSelectedMatch(match);
     }
   };
