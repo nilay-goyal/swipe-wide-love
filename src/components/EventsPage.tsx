@@ -26,7 +26,7 @@ const EventsPage = () => {
   const [events, setEvents] = useState<HackathonEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [joinedEvents, setJoinedEvents] = useState<string[]>([]);
+  const [joinedEventIds, setJoinedEventIds] = useState<string[]>([]);
 
   const fetchEvents = async () => {
     try {
@@ -49,20 +49,19 @@ const EventsPage = () => {
     }
   };
 
-  const fetchUserJoinedEvents = async () => {
+  const fetchUserParticipation = async () => {
     if (!user) return;
     
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('joined_events')
-        .eq('id', user.id)
-        .single();
+        .from('hackathon_participants')
+        .select('event_id')
+        .eq('user_id', user.id);
 
       if (error && error.code !== 'PGRST116') throw error;
-      setJoinedEvents(data?.joined_events || []);
+      setJoinedEventIds(data?.map(p => p.event_id) || []);
     } catch (error) {
-      console.error('Error fetching joined events:', error);
+      console.error('Error fetching user participation:', error);
     }
   };
 
@@ -78,7 +77,6 @@ const EventsPage = () => {
         description: "Successfully refreshed hackathon events from MLH",
       });
       
-      // Refetch events after scraping
       await fetchEvents();
     } catch (error) {
       console.error('Error scraping events:', error);
@@ -92,17 +90,61 @@ const EventsPage = () => {
     }
   };
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  const findUserByName = async (name: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .ilike('name', `%${name}%`)
+        .limit(1);
 
-  useEffect(() => {
-    if (user) {
-      fetchUserJoinedEvents();
+      if (error) throw error;
+      return data?.[0] || null;
+    } catch (error) {
+      console.error('Error finding user by name:', error);
+      return null;
     }
-  }, [user]);
+  };
 
-  const handleJoinEvent = async (eventId: string, eventTitle: string, mlhUrl: string) => {
+  const createTeamRelationship = async (eventId: string, teammateId: string) => {
+    if (!user) return;
+
+    try {
+      // Ensure consistent ordering for team members
+      const member1Id = user.id < teammateId ? user.id : teammateId;
+      const member2Id = user.id < teammateId ? teammateId : user.id;
+
+      const { error } = await supabase
+        .from('hackathon_teams')
+        .insert({
+          event_id: eventId,
+          member1_id: member1Id,
+          member2_id: member2Id
+        });
+
+      if (error && error.code !== '23505') { // Ignore duplicate constraint errors
+        throw error;
+      }
+
+      // Create a match between the users
+      const { error: matchError } = await supabase
+        .from('matches')
+        .insert({
+          user1_id: member1Id,
+          user2_id: member2Id
+        });
+
+      if (matchError && matchError.code !== '23505') { // Ignore duplicate constraint errors
+        throw matchError;
+      }
+
+    } catch (error) {
+      console.error('Error creating team relationship:', error);
+      throw error;
+    }
+  };
+
+  const handleJoinEvent = async (eventId: string, eventTitle: string, teammateName?: string) => {
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -112,67 +154,92 @@ const EventsPage = () => {
       return;
     }
 
-    const isAlreadyJoined = joinedEvents.includes(eventId);
+    const isAlreadyJoined = joinedEventIds.includes(eventId);
     
     if (isAlreadyJoined) {
-      // Remove from joined events
-      const updatedEvents = joinedEvents.filter(id => id !== eventId);
-      
+      // Remove participation
       try {
         const { error } = await supabase
-          .from('profiles')
-          .update({ joined_events: updatedEvents })
-          .eq('id', user.id);
+          .from('hackathon_participants')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('event_id', eventId);
 
         if (error) throw error;
         
-        setJoinedEvents(updatedEvents);
+        setJoinedEventIds(prev => prev.filter(id => id !== eventId));
         toast({
           title: "Left Hackathon",
           description: `You've left "${eventTitle}"`,
           duration: 2000,
         });
       } catch (error) {
-        console.error('Error updating joined events:', error);
+        console.error('Error leaving hackathon:', error);
         toast({
           title: "Error",
-          description: "Failed to update your joined events",
+          description: "Failed to leave hackathon",
           variant: "destructive",
         });
       }
     } else {
-      // Add to joined events and redirect to MLH
-      const updatedEvents = [...joinedEvents, eventId];
-      
+      // Join hackathon
       try {
         const { error } = await supabase
-          .from('profiles')
-          .update({ joined_events: updatedEvents })
-          .eq('id', user.id);
+          .from('hackathon_participants')
+          .insert({
+            user_id: user.id,
+            event_id: eventId,
+            is_verified: true
+          });
 
         if (error) throw error;
         
-        setJoinedEvents(updatedEvents);
-        toast({
-          title: "Hackathon Joined! 🎉",
-          description: `You've joined "${eventTitle}". Redirecting to MLH...`,
-          duration: 3000,
-        });
+        setJoinedEventIds(prev => [...prev, eventId]);
 
-        // Redirect to MLH page
-        if (mlhUrl) {
-          window.open(mlhUrl, '_blank');
+        // If teammate name is provided, try to find and connect them
+        if (teammateName) {
+          const teammate = await findUserByName(teammateName);
+          if (teammate) {
+            await createTeamRelationship(eventId, teammate.id);
+            toast({
+              title: "Hackathon Joined! 🎉",
+              description: `You've joined "${eventTitle}" and sent a match request to ${teammate.name}`,
+              duration: 3000,
+            });
+          } else {
+            toast({
+              title: "Hackathon Joined! ⚠️",
+              description: `You've joined "${eventTitle}" but couldn't find teammate "${teammateName}". They may need to join the platform first.`,
+              duration: 4000,
+            });
+          }
+        } else {
+          toast({
+            title: "Hackathon Joined! 🎉",
+            description: `You've been verified as a participant in "${eventTitle}"`,
+            duration: 3000,
+          });
         }
       } catch (error) {
-        console.error('Error updating joined events:', error);
+        console.error('Error joining hackathon:', error);
         toast({
           title: "Error",
-          description: "Failed to update your joined events",
+          description: "Failed to join hackathon",
           variant: "destructive",
         });
       }
     }
   };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserParticipation();
+    }
+  }, [user]);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'TBA';
@@ -201,7 +268,7 @@ const EventsPage = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
           {events.map((event) => {
-            const isJoined = joinedEvents.includes(event.id);
+            const isJoined = joinedEventIds.includes(event.id);
             
             return (
               <EventCard
