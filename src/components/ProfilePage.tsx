@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Star, Users, Plus, Trash2, Download, Code, Trophy } from 'lucide-react';
+import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Star, Users, Plus, Trash2, Download, Code, Trophy, ChevronDown, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,6 +52,8 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
   const [loading, setLoading] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [isSkillsDropdownOpen, setIsSkillsDropdownOpen] = useState(false);
+  
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
     name: '',
@@ -107,9 +109,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
 
   const skillOptions = [
     "AI/ML", "C++", "C", "HTML/CSS", "React", "Cloud/DevOps", "SQL", "Rust", 
-    "Python", "Databases", "Node.js", "Mobile Dev", "MATLAB", "Java", 
-    "JavaScript", "TypeScript", "Go", "PHP", "Ruby", "Swift", "Kotlin", 
-    "Flutter", "Vue.js", "Angular", "Django", "Flask", "Spring"
+    "Python", "Databases", "Node.js", "Mobile Development", "MATLAB", "Java"
   ];
 
   const skillCategories = [
@@ -419,6 +419,14 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
         skills: [...currentSkills, skill]
       });
     }
+  };
+
+  const removeSkill = (skillToRemove: string) => {
+    const currentSkills = editedProfile.skills || [];
+    setEditedProfile({
+      ...editedProfile,
+      skills: currentSkills.filter(s => s !== skillToRemove)
+    });
   };
 
   // Helper function to handle skill ratings
@@ -782,7 +790,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               </CardContent>
             </Card>
 
-            {/* Skills Section (replacing Interests) */}
+            {/* Technical Skills Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -792,23 +800,68 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               </CardHeader>
               <CardContent>
                 {isEditing ? (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Select your skills</label>
-                    <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {skillOptions.map((skill) => (
-                          <label key={skill} className="flex items-center space-x-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={editedProfile.skills?.includes(skill) || false}
-                              onChange={() => handleSkillsChange(skill)}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <span className="text-sm text-gray-700">{skill}</span>
-                          </label>
-                        ))}
-                      </div>
+                  <div className="space-y-4">
+                    {/* Custom Multi-Select Dropdown */}
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Select your skills</label>
+                      <button
+                        type="button"
+                        onClick={() => setIsSkillsDropdownOpen(!isSkillsDropdownOpen)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white text-left flex items-center justify-between"
+                      >
+                        <span className="text-gray-700">
+                          {editedProfile.skills && editedProfile.skills.length > 0 
+                            ? `${editedProfile.skills.length} skill${editedProfile.skills.length > 1 ? 's' : ''} selected`
+                            : 'Select skills...'
+                          }
+                        </span>
+                        <ChevronDown className={`w-4 h-4 transition-transform ${isSkillsDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {/* Dropdown Menu */}
+                      {isSkillsDropdownOpen && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          {skillOptions.map((skill) => (
+                            <label
+                              key={skill}
+                              className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={editedProfile.skills?.includes(skill) || false}
+                                onChange={() => handleSkillsChange(skill)}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
+                              />
+                              <span className="text-sm text-gray-700">{skill}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Selected Skills Display */}
+                    {editedProfile.skills && editedProfile.skills.length > 0 && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Selected skills</label>
+                        <div className="flex flex-wrap gap-2">
+                          {editedProfile.skills.map((skill) => (
+                            <span
+                              key={skill}
+                              className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm"
+                            >
+                              {skill}
+                              <button
+                                type="button"
+                                onClick={() => removeSkill(skill)}
+                                className="ml-1 text-blue-500 hover:text-blue-700"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-2">
