@@ -22,6 +22,7 @@ export const useMatching = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [newMatch, setNewMatch] = useState<Match | null>(null);
   const channelRef = useRef<any>(null);
+  const subscriptionRef = useRef<boolean>(false);
 
   // Fetch existing matches
   const fetchMatches = async () => {
@@ -134,15 +135,22 @@ export const useMatching = () => {
     }
   };
 
-  // Set up real-time subscription with simplified cleanup
-  useEffect(() => {
-    if (!user) return;
-
-    // Clean up existing channel if it exists
+  // Clean up subscription helper
+  const cleanupSubscription = () => {
     if (channelRef.current) {
+      console.log('Cleaning up matches channel');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
+      subscriptionRef.current = false;
     }
+  };
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!user || subscriptionRef.current) return;
+
+    // Clean up any existing subscription
+    cleanupSubscription();
 
     // Create new channel with unique name
     const channelName = `matches-${user.id}-${Date.now()}`;
@@ -159,7 +167,6 @@ export const useMatching = () => {
         },
         (payload) => {
           console.log('New match detected:', payload);
-          // Only fetch matches if this user is involved in the match
           const newMatch = payload.new as any;
           if (newMatch.user1_id === user.id || newMatch.user2_id === user.id) {
             fetchMatches();
@@ -169,19 +176,15 @@ export const useMatching = () => {
       .subscribe((status) => {
         console.log('Matches subscription status:', status);
         if (status === 'SUBSCRIBED') {
+          subscriptionRef.current = true;
           console.log('Successfully subscribed to matches channel');
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.warn('Matches subscription error:', status);
+          subscriptionRef.current = false;
         }
       });
 
-    return () => {
-      console.log('Cleaning up matches channel');
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
+    return cleanupSubscription;
   }, [user]);
 
   useEffect(() => {
@@ -190,13 +193,7 @@ export const useMatching = () => {
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      if (channelRef.current) {
-        console.log('Component unmounting, cleaning up matches channel');
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
+    return cleanupSubscription;
   }, []);
 
   const clearNewMatch = () => setNewMatch(null);

@@ -16,6 +16,7 @@ export const useMessaging = (matchId: string | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const channelRef = useRef<any>(null);
+  const subscriptionRef = useRef<boolean>(false);
 
   // Fetch messages for a specific match
   const fetchMessages = async () => {
@@ -61,18 +62,27 @@ export const useMessaging = (matchId: string | null) => {
     }
   };
 
-  // Listen for new messages in real-time with proper cleanup
-  useEffect(() => {
-    if (!matchId) return;
-
-    // Clean up existing channel if it exists
+  // Clean up subscription helper
+  const cleanupSubscription = () => {
     if (channelRef.current) {
+      console.log('Cleaning up messages channel');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
+      subscriptionRef.current = false;
     }
+  };
+
+  // Listen for new messages in real-time
+  useEffect(() => {
+    if (!matchId || subscriptionRef.current) return;
+
+    // Clean up existing subscription
+    cleanupSubscription();
 
     // Create new channel with unique name
     const channelName = `messages-${matchId}-${Date.now()}`;
+    console.log('Creating messages channel:', channelName);
+    
     channelRef.current = supabase
       .channel(channelName)
       .on(
@@ -84,17 +94,22 @@ export const useMessaging = (matchId: string | null) => {
           filter: `match_id=eq.${matchId}`
         },
         (payload) => {
+          console.log('New message received:', payload);
           setMessages(prev => [...prev, payload.new as Message]);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Messages subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          subscriptionRef.current = true;
+          console.log('Successfully subscribed to messages channel');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('Messages subscription error:', status);
+          subscriptionRef.current = false;
+        }
+      });
 
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
+    return cleanupSubscription;
   }, [matchId]);
 
   useEffect(() => {
@@ -103,12 +118,7 @@ export const useMessaging = (matchId: string | null) => {
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
+    return cleanupSubscription;
   }, []);
 
   return {
