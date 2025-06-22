@@ -143,6 +143,8 @@ export const useMatching = () => {
 
     // Create new channel with unique name
     const channelName = `matches-${user.id}-${Date.now()}`;
+    console.log('Creating matches channel:', channelName);
+    
     channelRef.current = supabase
       .channel(channelName)
       .on(
@@ -150,17 +152,23 @@ export const useMatching = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'matches',
-          filter: `user1_id=eq.${user.id},user2_id=eq.${user.id}`
+          table: 'matches'
         },
         (payload) => {
           console.log('New match detected:', payload);
-          fetchMatches();
+          // Only fetch matches if this user is involved in the match
+          const newMatch = payload.new as any;
+          if (newMatch.user1_id === user.id || newMatch.user2_id === user.id) {
+            fetchMatches();
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Matches subscription status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up matches channel');
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
@@ -171,6 +179,17 @@ export const useMatching = () => {
   useEffect(() => {
     fetchMatches();
   }, [user]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (channelRef.current) {
+        console.log('Component unmounting, cleaning up matches channel');
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, []);
 
   const clearNewMatch = () => setNewMatch(null);
 
