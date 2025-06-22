@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import ConversationList from './messages/ConversationList';
 import ChatWindow from './messages/ChatWindow';
@@ -7,8 +6,8 @@ import { useMatching } from '@/hooks/useMatching';
 import { useMessaging } from '@/hooks/useMessaging';
 
 interface MessagesConversation {
-  id: number;
-  matchId: number; // Changed from string to number to match ConversationList interface
+  id: string; // Changed back to string to use actual match ID
+  matchId: string; // Use actual match ID
   name: string;
   photo: string;
   lastMessage: string;
@@ -20,15 +19,16 @@ interface MessagesConversation {
 
 const MessagesPage = () => {
   const { matches } = useMatching();
-  const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<any>(null);
   const [conversations, setConversations] = useState<MessagesConversation[]>([]);
 
   // Transform matches into conversations
   useEffect(() => {
-    const transformedConversations = matches.map((match, index) => ({
-      id: index + 1,
-      matchId: index + 1, // Use numeric ID instead of string
+    console.log('MessagesPage: Transforming matches into conversations', matches);
+    const transformedConversations = matches.map((match) => ({
+      id: match.id, // Use actual match ID
+      matchId: match.id, // Use actual match ID
       name: match.matched_user?.name || 'Unknown',
       photo: match.matched_user?.photos?.[0] || '/placeholder.svg',
       lastMessage: "Start your conversation!",
@@ -38,16 +38,21 @@ const MessagesPage = () => {
       messages: []
     }));
 
+    console.log('MessagesPage: Transformed conversations', transformedConversations);
     setConversations(transformedConversations);
   }, [matches]);
 
-  const handleSelectConversation = (id: number) => {
+  const handleSelectConversation = (id: string) => {
+    console.log('MessagesPage: Selecting conversation', id);
     setSelectedConversation(id);
     const conversation = conversations.find(c => c.id === id);
     if (conversation) {
-      // Find the match by index since we're using index-based IDs
-      const match = matches[conversation.id - 1];
+      // Find the match by actual ID
+      const match = matches.find(m => m.id === id);
+      console.log('MessagesPage: Found match for conversation', match);
       setSelectedMatch(match);
+    } else {
+      console.log('MessagesPage: No conversation found for id', id);
     }
   };
 

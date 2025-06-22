@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Send, ArrowLeft, Heart } from 'lucide-react';
 import { useMessaging } from '@/hooks/useMessaging';
@@ -25,7 +24,15 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
   const { user } = useAuth();
   const { messages, loading, sendMessage } = useMessaging(match.id);
   const [newMessage, setNewMessage] = useState('');
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  console.log('LiveMessaging: Component rendered', { 
+    matchId: match.id, 
+    matchUser: match.matched_user,
+    messagesCount: messages.length,
+    loading 
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -36,10 +43,19 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || sending) return;
     
-    await sendMessage(newMessage);
-    setNewMessage('');
+    console.log('LiveMessaging: Sending message', { content: newMessage, matchId: match.id });
+    setSending(true);
+    
+    try {
+      await sendMessage(newMessage);
+      setNewMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -95,6 +111,7 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
             </div>
             <h3 className="text-lg font-semibold text-gray-800 mb-2">Start the conversation!</h3>
             <p className="text-gray-600">Say hello to {match.matched_user.name}</p>
+            <p className="text-sm text-gray-500 mt-2">Messages will appear here once you start chatting</p>
           </div>
         ) : (
           messages.map((message) => (
@@ -107,13 +124,13 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
                   message.sender_id === user?.id
                     ? 'dating-gradient text-white'
                     : 'bg-gray-100 text-gray-800'
-                }`}
+                } ${message.id.startsWith('temp-') ? 'opacity-70' : ''}`}
               >
                 <p>{message.content}</p>
                 <p className={`text-xs mt-1 ${
                   message.sender_id === user?.id ? 'text-pink-100' : 'text-gray-500'
                 }`}>
-                  {new Date(message.created_at).toLocaleTimeString('en-US', { 
+                  {message.id.startsWith('temp-') ? 'Sending...' : new Date(message.created_at).toLocaleTimeString('en-US', { 
                     hour: 'numeric', 
                     minute: '2-digit',
                     hour12: true 
@@ -141,10 +158,14 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
           </div>
           <button
             onClick={handleSendMessage}
-            disabled={!newMessage.trim()}
+            disabled={!newMessage.trim() || sending}
             className="dating-gradient text-white p-3 rounded-full hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send className="w-5 h-5" />
+            {sending ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
           </button>
         </div>
       </div>

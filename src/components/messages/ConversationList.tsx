@@ -1,7 +1,6 @@
-
 interface Conversation {
-  id: number;
-  matchId: number;
+  id: string;
+  matchId: string;
   name: string;
   photo: string;
   lastMessage: string;
@@ -12,8 +11,8 @@ interface Conversation {
 
 interface ConversationListProps {
   conversations: Conversation[];
-  selectedConversation: number | null;
-  onSelectConversation: (id: number) => void;
+  selectedConversation: string | null;
+  onSelectConversation: (id: string) => void;
 }
 
 const ConversationList = ({ conversations, selectedConversation, onSelectConversation }: ConversationListProps) => {
