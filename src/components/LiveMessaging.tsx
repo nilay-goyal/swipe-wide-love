@@ -27,7 +27,7 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  console.log('LiveMessaging render:', { matchId: match.id, messagesCount: messages.length, error });
+  console.log('LIVE MESSAGING RENDER:', { matchId: match.id, messagesCount: messages.length, error });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -40,12 +40,18 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || sending) return;
     
+    const messageContent = newMessage.trim();
+    setNewMessage(''); // Clear input immediately
     setSending(true);
+    
     try {
-      await sendMessage(newMessage);
-      setNewMessage('');
+      console.log('LIVE MESSAGING SENDING MESSAGE:', messageContent);
+      await sendMessage(messageContent);
+      console.log('LIVE MESSAGING MESSAGE SENT SUCCESSFULLY');
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('LIVE MESSAGING SEND ERROR:', error);
+      // Optionally restore the message to input if sending failed
+      // setNewMessage(messageContent);
     } finally {
       setSending(false);
     }
@@ -59,7 +65,7 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
   };
 
   if (!match.matched_user) {
-    console.error('No matched user data available');
+    console.error('LIVE MESSAGING ERROR - NO MATCHED USER DATA');
     return (
       <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
         <div className="text-center">
@@ -143,7 +149,7 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
                   message.sender_id === user?.id
                     ? 'dating-gradient text-white'
                     : 'bg-gray-100 text-gray-800'
-                }`}
+                } ${message.id.startsWith('temp-') ? 'opacity-70' : ''}`}
               >
                 <p>{message.content}</p>
                 <p className={`text-xs mt-1 ${
@@ -154,6 +160,7 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
                     minute: '2-digit',
                     hour12: true 
                   })}
+                  {message.id.startsWith('temp-') && ' (sending...)'}
                 </p>
               </div>
             </div>

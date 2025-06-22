@@ -60,6 +60,19 @@ export const useMessaging = (matchId: string | null) => {
 
     try {
       console.log('Sending message:', { matchId, content: content.trim() });
+      
+      // Create a temporary message for immediate display
+      const tempMessage: Message = {
+        id: `temp-${Date.now()}`,
+        match_id: matchId,
+        sender_id: user.id,
+        content: content.trim(),
+        created_at: new Date().toISOString()
+      };
+
+      // Add to local state immediately for instant feedback
+      setMessages(prev => [...prev, tempMessage]);
+
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -73,10 +86,15 @@ export const useMessaging = (matchId: string | null) => {
       if (error) {
         console.error('Error sending message:', error);
         setError(error.message);
+        // Remove the temporary message if sending failed
+        setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
         throw error;
       } else {
         console.log('Message sent successfully:', data);
-        // Don't add to local state here - let the real-time subscription handle it
+        // Replace the temporary message with the real one
+        setMessages(prev => prev.map(msg => 
+          msg.id === tempMessage.id ? data : msg
+        ));
       }
     } catch (error) {
       console.error('Error in sendMessage:', error);
@@ -148,8 +166,11 @@ export const useMessaging = (matchId: string | null) => {
     return cleanupSubscription;
   }, [matchId, user]);
 
+  // Fetch messages when matchId or user changes
   useEffect(() => {
-    fetchMessages();
+    if (matchId && user) {
+      fetchMessages();
+    }
   }, [matchId, user]);
 
   // Cleanup on unmount
