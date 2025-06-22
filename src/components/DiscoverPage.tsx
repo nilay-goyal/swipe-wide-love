@@ -71,7 +71,7 @@ const DiscoverPage = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('swipes')
         .select('swiped_id')
         .eq('swiper_id', user.id);

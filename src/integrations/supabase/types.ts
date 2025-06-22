@@ -54,6 +54,59 @@ export type Database = {
         }
         Relationships: []
       }
+      matches: {
+        Row: {
+          created_at: string
+          id: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          match_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          match_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          match_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           age: number | null
@@ -117,6 +170,30 @@ export type Database = {
           photos?: string[] | null
           updated_at?: string
           work_experience?: Json | null
+        }
+        Relationships: []
+      }
+      swipes: {
+        Row: {
+          created_at: string
+          id: string
+          is_like: boolean
+          swiped_id: string
+          swiper_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_like?: boolean
+          swiped_id: string
+          swiper_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_like?: boolean
+          swiped_id?: string
+          swiper_id?: string
         }
         Relationships: []
       }

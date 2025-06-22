@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -15,6 +15,7 @@ export const useMessaging = (matchId: string | null) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const channelRef = useRef<any>(null);
 
   // Fetch messages for a specific match
   const fetchMessages = async () => {
@@ -22,7 +23,7 @@ export const useMessaging = (matchId: string | null) => {
 
     setLoading(true);
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('messages')
         .select('*')
         .eq('match_id', matchId)
@@ -44,7 +45,7 @@ export const useMessaging = (matchId: string | null) => {
     if (!matchId || !user || !content.trim()) return;
 
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('messages')
         .insert({
           match_id: matchId,
@@ -60,12 +61,20 @@ export const useMessaging = (matchId: string | null) => {
     }
   };
 
-  // Listen for new messages in real-time
+  // Listen for new messages in real-time with proper cleanup
   useEffect(() => {
     if (!matchId) return;
 
-    const channel = supabase
-      .channel(`messages-${matchId}`)
+    // Clean up existing channel if it exists
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    // Create new channel with unique name
+    const channelName = `messages-${matchId}-${Date.now()}`;
+    channelRef.current = supabase
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -81,13 +90,26 @@ export const useMessaging = (matchId: string | null) => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [matchId]);
 
   useEffect(() => {
     fetchMessages();
   }, [matchId]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, []);
 
   return {
     messages,

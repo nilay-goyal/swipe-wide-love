@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
@@ -21,13 +21,14 @@ export const useMatching = () => {
   const { toast } = useToast();
   const [matches, setMatches] = useState<Match[]>([]);
   const [newMatch, setNewMatch] = useState<Match | null>(null);
+  const channelRef = useRef<any>(null);
 
   // Fetch existing matches
   const fetchMatches = async () => {
     if (!user) return;
 
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('matches')
         .select(`
           id,
@@ -72,7 +73,7 @@ export const useMatching = () => {
     if (!user) return;
 
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('swipes')
         .insert({
           swiper_id: user.id,
@@ -89,7 +90,7 @@ export const useMatching = () => {
       if (isLike) {
         setTimeout(async () => {
           try {
-            const { data: newMatches } = await (supabase as any)
+            const { data: newMatches } = await supabase
               .from('matches')
               .select(`
                 id,
@@ -130,12 +131,20 @@ export const useMatching = () => {
     }
   };
 
-  // Listen for new matches in real-time
+  // Set up real-time subscription with proper cleanup
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
-      .channel('matches-channel')
+    // Clean up existing channel if it exists
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    // Create new channel with unique name
+    const channelName = `matches-${user.id}-${Date.now()}`;
+    channelRef.current = supabase
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -152,7 +161,10 @@ export const useMatching = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [user]);
 
