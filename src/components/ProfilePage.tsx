@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Star, Users, Plus, Trash2, Download, Code, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -680,7 +679,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Social Links</span>
+                  <span>Profile Links</span>
                   {isEditing && (
                     <button
                       onClick={handleImportData}
@@ -830,6 +829,46 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               </CardContent>
             </Card>
 
+            {/* Skill Ratings Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Star className="w-5 h-5 text-yellow-500" />
+                  <span>Skill Ratings</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Rate your skills (1-3 stars)</label>
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      {skillCategories.map(({ key, label }) => (
+                        <StarRating
+                          key={key}
+                          skillKey={key}
+                          label={label}
+                          value={editedProfile[key as keyof UserProfile] as number}
+                          onChange={(rating) => handleSkillRatingChange(key, rating)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    {skillCategories.map(({ key, label }) => (
+                      <StarRating
+                        key={key}
+                        skillKey={key}
+                        label={label}
+                        value={profile[key as keyof UserProfile] as number}
+                        readonly={true}
+                      />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Hackathon Info Section */}
             <Card>
               <CardHeader>
@@ -841,42 +880,6 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               <CardContent>
                 {isEditing ? (
                   <div className="space-y-4">
-                    {/* Social Links */}
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
-                        <input
-                          type="url"
-                          value={editedProfile.linkedin || ''}
-                          onChange={(e) => setEditedProfile({...editedProfile, linkedin: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                          placeholder="Paste your LinkedIn URL"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">GitHub</label>
-                        <input
-                          type="url"
-                          value={editedProfile.github || ''}
-                          onChange={(e) => setEditedProfile({...editedProfile, github: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                          placeholder="Paste your GitHub URL"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">DevPost</label>
-                        <input
-                          type="url"
-                          value={editedProfile.devpost || ''}
-                          onChange={(e) => setEditedProfile({...editedProfile, devpost: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                          placeholder="Paste your DevPost URL"
-                        />
-                      </div>
-                    </div>
-
                     {/* Education */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -918,52 +921,11 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                         placeholder="Your school name"
                       />
                     </div>
-
-                    {/* Skills Ratings */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Skill Ratings (1-3 stars)</label>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                        {skillCategories.map(({ key, label }) => (
-                          <StarRating
-                            key={key}
-                            skillKey={key}
-                            label={label}
-                            value={editedProfile[key as keyof UserProfile] as number}
-                            onChange={(rating) => handleSkillRatingChange(key, rating)}
-                          />
-                        ))}
-                      </div>
-                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {/* Display social links */}
-                    <div>
-                      <h4 className="font-medium text-gray-800 mb-2">Social Links</h4>
-                      <div className="space-y-2">
-                        {profile.linkedin && (
-                          <div className="flex items-center space-x-2 text-sm text-gray-600">
-                            <Linkedin className="w-4 h-4" />
-                            <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">LinkedIn</a>
-                          </div>
-                        )}
-                        {profile.github && (
-                          <div className="flex items-center space-x-2 text-sm text-gray-600">
-                            <Github className="w-4 h-4" />
-                            <a href={profile.github} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">GitHub</a>
-                          </div>
-                        )}
-                        {profile.devpost && (
-                          <div className="flex items-center space-x-2 text-sm text-gray-600">
-                            <ExternalLink className="w-4 h-4" />
-                            <a href={profile.devpost} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">DevPost</a>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
                     {/* Display education info */}
-                    {(profile.major || profile.school || profile.year) && (
+                    {(profile.major || profile.school || profile.year) ? (
                       <div>
                         <h4 className="font-medium text-gray-800 mb-2">Education</h4>
                         <div className="space-y-1 text-sm text-gray-600">
@@ -972,25 +934,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                           {profile.year && <p>Year: {profile.year}</p>}
                         </div>
                       </div>
-                    )}
-
-                    {/* Display skill ratings with stars */}
-                    <div>
-                      <h4 className="font-medium text-gray-800 mb-2">Skill Ratings</h4>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                        {skillCategories.map(({ key, label }) => (
-                          <StarRating
-                            key={key}
-                            skillKey={key}
-                            label={label}
-                            value={profile[key as keyof UserProfile] as number}
-                            readonly={true}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    {!profile.major && !profile.school && !profile.year && !profile.linkedin && !profile.github && !profile.devpost && (
+                    ) : (
                       <p className="text-gray-400 text-center py-4">No hackathon information added yet</p>
                     )}
                   </div>
