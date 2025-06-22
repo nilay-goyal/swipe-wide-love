@@ -22,7 +22,6 @@ export const useMatching = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [newMatch, setNewMatch] = useState<Match | null>(null);
   const channelRef = useRef<any>(null);
-  const subscriptionRef = useRef<boolean>(false);
 
   // Fetch existing matches
   const fetchMatches = async () => {
@@ -141,22 +140,21 @@ export const useMatching = () => {
       console.log('Cleaning up matches channel');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
-      subscriptionRef.current = false;
     }
   };
 
   // Set up real-time subscription
   useEffect(() => {
-    if (!user || subscriptionRef.current) return;
+    if (!user) return;
 
-    // Clean up any existing subscription
+    // Clean up any existing subscription first
     cleanupSubscription();
 
     // Create new channel with unique name
     const channelName = `matches-${user.id}-${Date.now()}`;
     console.log('Creating matches channel:', channelName);
     
-    channelRef.current = supabase
+    const channel = supabase
       .channel(channelName)
       .on(
         'postgres_changes',
@@ -176,13 +174,13 @@ export const useMatching = () => {
       .subscribe((status) => {
         console.log('Matches subscription status:', status);
         if (status === 'SUBSCRIBED') {
-          subscriptionRef.current = true;
           console.log('Successfully subscribed to matches channel');
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.warn('Matches subscription error:', status);
-          subscriptionRef.current = false;
         }
       });
+
+    channelRef.current = channel;
 
     return cleanupSubscription;
   }, [user]);

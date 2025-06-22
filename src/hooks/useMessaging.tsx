@@ -16,7 +16,6 @@ export const useMessaging = (matchId: string | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const channelRef = useRef<any>(null);
-  const subscriptionRef = useRef<boolean>(false);
 
   // Fetch messages for a specific match
   const fetchMessages = async () => {
@@ -68,22 +67,21 @@ export const useMessaging = (matchId: string | null) => {
       console.log('Cleaning up messages channel');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
-      subscriptionRef.current = false;
     }
   };
 
   // Listen for new messages in real-time
   useEffect(() => {
-    if (!matchId || subscriptionRef.current) return;
+    if (!matchId) return;
 
-    // Clean up existing subscription
+    // Clean up existing subscription first
     cleanupSubscription();
 
     // Create new channel with unique name
     const channelName = `messages-${matchId}-${Date.now()}`;
     console.log('Creating messages channel:', channelName);
     
-    channelRef.current = supabase
+    const channel = supabase
       .channel(channelName)
       .on(
         'postgres_changes',
@@ -101,13 +99,13 @@ export const useMessaging = (matchId: string | null) => {
       .subscribe((status) => {
         console.log('Messages subscription status:', status);
         if (status === 'SUBSCRIBED') {
-          subscriptionRef.current = true;
           console.log('Successfully subscribed to messages channel');
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.warn('Messages subscription error:', status);
-          subscriptionRef.current = false;
         }
       });
+
+    channelRef.current = channel;
 
     return cleanupSubscription;
   }, [matchId]);
