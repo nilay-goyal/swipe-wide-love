@@ -683,7 +683,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               </CardContent>
             </Card>
 
-            {/* Social Links */}
+            {/* Profile Links */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -922,12 +922,12 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
               </CardContent>
             </Card>
 
-            {/* Hackathon Info Section */}
+            {/* Education Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Trophy className="w-5 h-5 text-orange-500" />
-                  <span>Hackathon Info</span>
+                  <GraduationCap className="w-5 h-5 text-purple-500" />
+                  <span>Education</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -988,7 +988,7 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-gray-400 text-center py-4">No hackathon information added yet</p>
+                      <p className="text-gray-400 text-center py-4">No education information added yet</p>
                     )}
                   </div>
                 )}
@@ -1022,34 +1022,6 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                   </div>
                 ) : (
                   <p className="text-gray-400 text-center py-4">No work experience added yet</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Education */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <GraduationCap className="w-5 h-5 text-purple-500" />
-                  <span>Education</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {profile.education_details && profile.education_details.length > 0 ? (
-                  <div className="space-y-4">
-                    {profile.education_details.map((edu: any, index: number) => (
-                      <div key={index} className="border-l-4 border-purple-200 pl-4">
-                        <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
-                        <p className="text-gray-600">{edu.school}</p>
-                        <p className="text-sm text-gray-500">{edu.year}</p>
-                        {edu.description && (
-                          <p className="text-sm text-gray-700 mt-1">{edu.description}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-400 text-center py-4">No education details added yet</p>
                 )}
               </CardContent>
             </Card>
