@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Star, Users, Plus, Trash2, Download } from 'lucide-react';
+import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Star, Users, Plus, Trash2, Download, Code, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { scrapeSocialProfiles, ScrapedData } from '@/services/socialScraper';
 
 interface UserProfile {
@@ -23,6 +24,21 @@ interface UserProfile {
   github_projects: any[];
   work_experience: any[];
   education_details: any[];
+  // New hackathon fields
+  linkedin: string | null;
+  github: string | null;
+  devpost: string | null;
+  major: string | null;
+  school: string | null;
+  year: string | null;
+  uiux: number | null;
+  pitching: number | null;
+  management: number | null;
+  hardware: number | null;
+  cyber: number | null;
+  frontend: number | null;
+  backend: number | null;
+  skills: string[] | null;
 }
 
 interface ProfilePageProps {
@@ -51,10 +67,52 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     linkedin_url: null,
     github_projects: [],
     work_experience: [],
-    education_details: []
+    education_details: [],
+    // New hackathon fields
+    linkedin: null,
+    github: null,
+    devpost: null,
+    major: null,
+    school: null,
+    year: null,
+    uiux: null,
+    pitching: null,
+    management: null,
+    hardware: null,
+    cyber: null,
+    frontend: null,
+    backend: null,
+    skills: null
   });
 
   const [editedProfile, setEditedProfile] = useState<UserProfile>(profile);
+
+  // Predefined options
+  const majorOptions = [
+    "Computer Science",
+    "Computer Engineering", 
+    "Software Engineering",
+    "Electrical Engineering",
+    "Other"
+  ];
+
+  const yearOptions = [
+    "1st year",
+    "2nd year", 
+    "3rd year",
+    "4th year",
+    "Graduate",
+    "Other"
+  ];
+
+  const skillOptions = [
+    "React", "Node.js", "Python", "SQL", "C++", "C", "Go", "Rust", "R", 
+    "HTML/CSS", "Cloud/DevOps", "AI/ML", "Databases", "Mobile Dev", 
+    "JavaScript", "TypeScript", "Java", "C#", "PHP", "Ruby", "Swift", 
+    "Kotlin", "Flutter", "Vue.js", "Angular", "Django", "Flask", "Spring"
+  ];
+
+  const ratingOptions = [1, 2, 3];
 
   useEffect(() => {
     if (user) {
@@ -102,7 +160,22 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
           linkedin_url: data.linkedin_url,
           github_projects: Array.isArray(data.github_projects) ? data.github_projects : [],
           work_experience: Array.isArray(data.work_experience) ? data.work_experience : [],
-          education_details: Array.isArray(data.education_details) ? data.education_details : []
+          education_details: Array.isArray(data.education_details) ? data.education_details : [],
+          // New hackathon fields
+          linkedin: data.linkedin,
+          github: data.github,
+          devpost: data.devpost,
+          major: data.major,
+          school: data.school,
+          year: data.year,
+          uiux: data.uiux,
+          pitching: data.pitching,
+          management: data.management,
+          hardware: data.hardware,
+          cyber: data.cyber,
+          frontend: data.frontend,
+          backend: data.backend,
+          skills: Array.isArray(data.skills) ? data.skills : []
         };
         setProfile(profileData);
         setEditedProfile(profileData);
@@ -265,6 +338,21 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
         github_projects: editedProfile.github_projects,
         work_experience: editedProfile.work_experience,
         education_details: editedProfile.education_details,
+        // New hackathon fields
+        linkedin: editedProfile.linkedin,
+        github: editedProfile.github,
+        devpost: editedProfile.devpost,
+        major: editedProfile.major,
+        school: editedProfile.school,
+        year: editedProfile.year,
+        uiux: editedProfile.uiux,
+        pitching: editedProfile.pitching,
+        management: editedProfile.management,
+        hardware: editedProfile.hardware,
+        cyber: editedProfile.cyber,
+        frontend: editedProfile.frontend,
+        backend: editedProfile.backend,
+        skills: editedProfile.skills,
       };
 
       const { error } = await supabase
@@ -303,6 +391,22 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
       title: "Signed out successfully",
       description: "Come back soon! 💕",
     });
+  };
+
+  // Helper function to handle multi-select skills
+  const handleSkillsChange = (skill: string) => {
+    const currentSkills = editedProfile.skills || [];
+    if (currentSkills.includes(skill)) {
+      setEditedProfile({
+        ...editedProfile,
+        skills: currentSkills.filter(s => s !== skill)
+      });
+    } else {
+      setEditedProfile({
+        ...editedProfile,
+        skills: [...currentSkills, skill]
+      });
+    }
   };
 
   if (loading) {
@@ -656,6 +760,222 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
                       ))
                     ) : (
                       <span className="text-gray-400 text-sm">No interests added yet</span>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* New Hackathon Info Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Trophy className="w-5 h-5 text-orange-500" />
+                  <span>Hackathon Info</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
+                  <div className="space-y-4">
+                    {/* Social Links */}
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+                        <input
+                          type="url"
+                          value={editedProfile.linkedin || ''}
+                          onChange={(e) => setEditedProfile({...editedProfile, linkedin: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          placeholder="Paste your LinkedIn URL"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">GitHub</label>
+                        <input
+                          type="url"
+                          value={editedProfile.github || ''}
+                          onChange={(e) => setEditedProfile({...editedProfile, github: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          placeholder="Paste your GitHub URL"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">DevPost</label>
+                        <input
+                          type="url"
+                          value={editedProfile.devpost || ''}
+                          onChange={(e) => setEditedProfile({...editedProfile, devpost: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          placeholder="Paste your DevPost URL"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Education */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Major</label>
+                        <Select value={editedProfile.major || ''} onValueChange={(value) => setEditedProfile({...editedProfile, major: value})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your major" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {majorOptions.map((major) => (
+                              <SelectItem key={major} value={major}>{major}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                        <Select value={editedProfile.year || ''} onValueChange={(value) => setEditedProfile({...editedProfile, year: value})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your year" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {yearOptions.map((year) => (
+                              <SelectItem key={year} value={year}>{year}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">School</label>
+                      <input
+                        type="text"
+                        value={editedProfile.school || ''}
+                        onChange={(e) => setEditedProfile({...editedProfile, school: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        placeholder="Your school name"
+                      />
+                    </div>
+
+                    {/* Skills Ratings */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Skills (Rate 1-3)</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[
+                          { key: 'uiux', label: 'UI/UX' },
+                          { key: 'frontend', label: 'Frontend' },
+                          { key: 'backend', label: 'Backend' },
+                          { key: 'hardware', label: 'Hardware' },
+                          { key: 'cyber', label: 'Cybersecurity' },
+                          { key: 'pitching', label: 'Pitching' },
+                          { key: 'management', label: 'Management' }
+                        ].map(({ key, label }) => (
+                          <div key={key}>
+                            <label className="block text-sm text-gray-600 mb-1">{label}</label>
+                            <Select value={editedProfile[key as keyof UserProfile]?.toString() || ''} onValueChange={(value) => setEditedProfile({...editedProfile, [key]: parseInt(value) || null})}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Rate 1-3" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {ratingOptions.map((rating) => (
+                                  <SelectItem key={rating} value={rating.toString()}>{rating}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Skills Multi-select */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Technical Skills</label>
+                      <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {skillOptions.map((skill) => (
+                            <label key={skill} className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={editedProfile.skills?.includes(skill) || false}
+                                onChange={() => handleSkillsChange(skill)}
+                                className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                              />
+                              <span className="text-sm text-gray-700">{skill}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Display social links */}
+                    <div>
+                      <h4 className="font-medium text-gray-800 mb-2">Social Links</h4>
+                      <div className="space-y-2">
+                        {profile.linkedin && (
+                          <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <Linkedin className="w-4 h-4" />
+                            <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">LinkedIn</a>
+                          </div>
+                        )}
+                        {profile.github && (
+                          <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <Github className="w-4 h-4" />
+                            <a href={profile.github} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">GitHub</a>
+                          </div>
+                        )}
+                        {profile.devpost && (
+                          <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <ExternalLink className="w-4 h-4" />
+                            <a href={profile.devpost} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">DevPost</a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Display education info */}
+                    {(profile.major || profile.school || profile.year) && (
+                      <div>
+                        <h4 className="font-medium text-gray-800 mb-2">Education</h4>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          {profile.major && <p>Major: {profile.major}</p>}
+                          {profile.school && <p>School: {profile.school}</p>}
+                          {profile.year && <p>Year: {profile.year}</p>}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Display skill ratings */}
+                    {(profile.uiux || profile.frontend || profile.backend || profile.hardware || profile.cyber || profile.pitching || profile.management) && (
+                      <div>
+                        <h4 className="font-medium text-gray-800 mb-2">Skill Ratings</h4>
+                        <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                          {profile.uiux && <p>UI/UX: {profile.uiux}/3</p>}
+                          {profile.frontend && <p>Frontend: {profile.frontend}/3</p>}
+                          {profile.backend && <p>Backend: {profile.backend}/3</p>}
+                          {profile.hardware && <p>Hardware: {profile.hardware}/3</p>}
+                          {profile.cyber && <p>Cybersecurity: {profile.cyber}/3</p>}
+                          {profile.pitching && <p>Pitching: {profile.pitching}/3</p>}
+                          {profile.management && <p>Management: {profile.management}/3</p>}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Display technical skills */}
+                    {profile.skills && profile.skills.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-800 mb-2">Technical Skills</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {profile.skills.map((skill, index) => (
+                            <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {!profile.major && !profile.school && !profile.year && !profile.linkedin && !profile.github && !profile.devpost && (!profile.skills || profile.skills.length === 0) && (
+                      <p className="text-gray-400 text-center py-4">No hackathon information added yet</p>
                     )}
                   </div>
                 )}

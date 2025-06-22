@@ -110,63 +110,105 @@ export type Database = {
       profiles: {
         Row: {
           age: number | null
+          backend: number | null
           bio: string | null
           created_at: string
+          cyber: number | null
+          devpost: string | null
           devpost_url: string | null
           education: string | null
           education_details: Json | null
+          frontend: number | null
+          github: string | null
           github_projects: Json | null
           github_url: string | null
+          hardware: number | null
           id: string
           interests: string[] | null
           joined_events: string[] | null
+          linkedin: string | null
           linkedin_url: string | null
           location: string | null
+          major: string | null
+          management: number | null
           name: string | null
           occupation: string | null
           photos: string[] | null
+          pitching: number | null
+          school: string | null
+          skills: string[] | null
+          uiux: number | null
           updated_at: string
           work_experience: Json | null
+          year: string | null
         }
         Insert: {
           age?: number | null
+          backend?: number | null
           bio?: string | null
           created_at?: string
+          cyber?: number | null
+          devpost?: string | null
           devpost_url?: string | null
           education?: string | null
           education_details?: Json | null
+          frontend?: number | null
+          github?: string | null
           github_projects?: Json | null
           github_url?: string | null
+          hardware?: number | null
           id: string
           interests?: string[] | null
           joined_events?: string[] | null
+          linkedin?: string | null
           linkedin_url?: string | null
           location?: string | null
+          major?: string | null
+          management?: number | null
           name?: string | null
           occupation?: string | null
           photos?: string[] | null
+          pitching?: number | null
+          school?: string | null
+          skills?: string[] | null
+          uiux?: number | null
           updated_at?: string
           work_experience?: Json | null
+          year?: string | null
         }
         Update: {
           age?: number | null
+          backend?: number | null
           bio?: string | null
           created_at?: string
+          cyber?: number | null
+          devpost?: string | null
           devpost_url?: string | null
           education?: string | null
           education_details?: Json | null
+          frontend?: number | null
+          github?: string | null
           github_projects?: Json | null
           github_url?: string | null
+          hardware?: number | null
           id?: string
           interests?: string[] | null
           joined_events?: string[] | null
+          linkedin?: string | null
           linkedin_url?: string | null
           location?: string | null
+          major?: string | null
+          management?: number | null
           name?: string | null
           occupation?: string | null
           photos?: string[] | null
+          pitching?: number | null
+          school?: string | null
+          skills?: string[] | null
+          uiux?: number | null
           updated_at?: string
           work_experience?: Json | null
+          year?: string | null
         }
         Relationships: []
       }
