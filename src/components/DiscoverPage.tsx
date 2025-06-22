@@ -228,8 +228,8 @@ const DiscoverPage = () => {
     <div className="min-h-screen py-8">
       <div className="max-w-4xl mx-auto px-4 space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Discover</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold text-app-amber mb-2">Discover</h1>
+          <p className="text-app-neutral">
             Profile {currentIndex + 1} of {profiles.length}
           </p>
         </div>
