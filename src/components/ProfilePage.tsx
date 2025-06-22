@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Edit, Save, Camera, MapPin, LogOut, Github, Linkedin, ExternalLink, Building, GraduationCap, Star, Users, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { scrapeSocialProfiles } from '@/services/socialScraper';
 
 interface UserProfile {
   id: string;
@@ -183,34 +183,70 @@ const ProfilePage = ({ onEditRequireAuth }: ProfilePageProps) => {
     }
 
     try {
+      // Check if social URLs have changed to trigger scraping
+      const urlsChanged = 
+        profile.github_url !== editedProfile.github_url ||
+        profile.linkedin_url !== editedProfile.linkedin_url ||
+        profile.devpost_url !== editedProfile.devpost_url;
+
+      let scrapedData = {};
+      
+      if (urlsChanged) {
+        toast({
+          title: "Importing data from social profiles...",
+          description: "This may take a few seconds",
+        });
+
+        // Scrape social profiles for new data
+        scrapedData = await scrapeSocialProfiles({
+          github_url: editedProfile.github_url || undefined,
+          linkedin_url: editedProfile.linkedin_url || undefined,
+          devpost_url: editedProfile.devpost_url || undefined,
+        });
+
+        console.log('Scraped data:', scrapedData);
+      }
+
+      const profileData = {
+        id: user.id,
+        name: editedProfile.name?.trim(),
+        age: editedProfile.age,
+        bio: editedProfile.bio?.trim(),
+        location: editedProfile.location,
+        photos: editedProfile.photos,
+        interests: editedProfile.interests,
+        occupation: editedProfile.occupation,
+        education: editedProfile.education,
+        github_url: editedProfile.github_url,
+        devpost_url: editedProfile.devpost_url,
+        linkedin_url: editedProfile.linkedin_url,
+        github_projects: scrapedData.github_projects || editedProfile.github_projects,
+        work_experience: scrapedData.work_experience || editedProfile.work_experience,
+        education_details: scrapedData.education_details || editedProfile.education_details,
+      };
+
       const { error } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          name: editedProfile.name?.trim(),
-          age: editedProfile.age,
-          bio: editedProfile.bio?.trim(),
-          location: editedProfile.location,
-          photos: editedProfile.photos,
-          interests: editedProfile.interests,
-          occupation: editedProfile.occupation,
-          education: editedProfile.education,
-          github_url: editedProfile.github_url,
-          devpost_url: editedProfile.devpost_url,
-          linkedin_url: editedProfile.linkedin_url,
-          github_projects: editedProfile.github_projects,
-          work_experience: editedProfile.work_experience,
-          education_details: editedProfile.education_details,
-        });
+        .upsert(profileData);
 
       if (error) throw error;
 
-      setProfile(editedProfile);
+      // Update local state with scraped data
+      const updatedProfile = {
+        ...editedProfile,
+        github_projects: scrapedData.github_projects || editedProfile.github_projects,
+        work_experience: scrapedData.work_experience || editedProfile.work_experience,
+        education_details: scrapedData.education_details || editedProfile.education_details,
+      };
+
+      setProfile(updatedProfile);
+      setEditedProfile(updatedProfile);
       setIsEditing(false);
       setValidationErrors([]);
+      
       toast({
         title: "Profile Updated! ✨",
-        description: "Your changes have been saved successfully",
+        description: urlsChanged ? "Your profile has been updated with imported data from your social links" : "Your changes have been saved successfully",
         duration: 3000,
       });
     } catch (error: any) {
