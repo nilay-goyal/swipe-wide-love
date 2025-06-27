@@ -14,18 +14,24 @@ export const useMessaging = (matchId: string | null) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<any>(null);
+
+  console.log('useMessaging hook initialized with matchId:', matchId, 'user:', user?.id);
 
   // Fetch messages for a specific match
   const fetchMessages = async () => {
     if (!matchId || !user) {
-      console.log('fetchMessages: Missing matchId or user', { matchId, userId: user?.id });
+      console.log('Cannot fetch messages - missing matchId or user:', { matchId, userId: user?.id });
       return;
     }
 
     console.log('fetchMessages: Fetching messages for match', matchId);
     setLoading(true);
+    setError(null);
+    
     try {
+      console.log('Fetching messages for match:', matchId);
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -34,12 +40,14 @@ export const useMessaging = (matchId: string | null) => {
 
       if (error) {
         console.error('Error fetching messages:', error);
+        setError(error.message);
       } else {
-        console.log('fetchMessages: Successfully fetched messages', data?.length || 0);
+        console.log('Successfully fetched messages:', data?.length || 0, 'messages');
         setMessages(data || []);
       }
     } catch (error) {
       console.error('Error in fetchMessages:', error);
+      setError('Failed to fetch messages');
     }
     setLoading(false);
   };
@@ -47,25 +55,25 @@ export const useMessaging = (matchId: string | null) => {
   // Send a new message
   const sendMessage = async (content: string) => {
     if (!matchId || !user || !content.trim()) {
-      console.log('sendMessage: Missing required data', { matchId, userId: user?.id, content });
+      console.log('Cannot send message - missing data:', { matchId, userId: user?.id, content: content.trim() });
       return;
     }
 
-    console.log('sendMessage: Sending message', { matchId, content });
-    
-    // Create optimistic message
-    const optimisticMessage: Message = {
-      id: `temp-${Date.now()}-${Math.random()}`, // Temporary ID
-      match_id: matchId,
-      sender_id: user.id,
-      content: content.trim(),
-      created_at: new Date().toISOString()
-    };
-
-    // Optimistically add to UI immediately
-    setMessages(prev => [...prev, optimisticMessage]);
-
     try {
+      console.log('Sending message:', { matchId, content: content.trim() });
+      
+      // Create a temporary message for immediate display
+      const tempMessage: Message = {
+        id: `temp-${Date.now()}`,
+        match_id: matchId,
+        sender_id: user.id,
+        content: content.trim(),
+        created_at: new Date().toISOString()
+      };
+
+      // Add to local state immediately for instant feedback
+      setMessages(prev => [...prev, tempMessage]);
+
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -78,24 +86,21 @@ export const useMessaging = (matchId: string | null) => {
 
       if (error) {
         console.error('Error sending message:', error);
-        // Remove optimistic message on error
-        setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+        setError(error.message);
+        // Remove the temporary message if sending failed
+        setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+        throw error;
       } else {
-        console.log('sendMessage: Message sent successfully', data);
-        // Replace optimistic message with real one
+        console.log('Message sent successfully:', data);
+        // Replace the temporary message with the real one
         setMessages(prev => prev.map(msg => 
-          msg.id === optimisticMessage.id ? data : msg
+          msg.id === tempMessage.id ? data : msg
         ));
-        
-        // Fallback: Refetch messages after a short delay to ensure sync
-        setTimeout(() => {
-          fetchMessages();
-        }, 1000);
       }
     } catch (error) {
       console.error('Error in sendMessage:', error);
-      // Remove optimistic message on error
-      setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+      setError('Failed to send message');
+      throw error;
     }
   };
 
@@ -110,12 +115,10 @@ export const useMessaging = (matchId: string | null) => {
 
   // Listen for new messages in real-time
   useEffect(() => {
-    if (!matchId) {
-      console.log('useMessaging: No matchId provided');
+    if (!matchId || !user) {
+      console.log('Cannot set up subscription - missing matchId or user');
       return;
     }
-
-    console.log('useMessaging: Setting up real-time subscription for match', matchId);
 
     // Clean up existing subscription first
     cleanupSubscription();
@@ -135,20 +138,18 @@ export const useMessaging = (matchId: string | null) => {
           filter: `match_id=eq.${matchId}`
         },
         (payload) => {
-          console.log('New message received via realtime:', payload);
+          console.log('New message received:', payload);
           const newMessage = payload.new as Message;
-          
-          // Only add if it's not from the current user (to avoid duplicates)
-          if (newMessage.sender_id !== user?.id) {
-            setMessages(prev => {
-              // Check if message already exists (to avoid duplicates)
-              const exists = prev.some(msg => msg.id === newMessage.id);
-              if (!exists) {
-                return [...prev, newMessage];
-              }
+          setMessages(prev => {
+            // Check if message already exists to avoid duplicates
+            const exists = prev.some(msg => msg.id === newMessage.id);
+            if (exists) {
+              console.log('Message already exists, not adding duplicate');
               return prev;
-            });
-          }
+            }
+            console.log('Adding new message to state');
+            return [...prev, newMessage];
+          });
         }
       )
       .subscribe((status) => {
@@ -157,17 +158,21 @@ export const useMessaging = (matchId: string | null) => {
           console.log('Successfully subscribed to messages channel');
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.warn('Messages subscription error:', status);
+          setError('Connection error - messages may not update in real-time');
         }
       });
 
     channelRef.current = channel;
 
     return cleanupSubscription;
-  }, [matchId, user?.id]);
+  }, [matchId, user]);
 
+  // Fetch messages when matchId or user changes
   useEffect(() => {
-    fetchMessages();
-  }, [matchId]);
+    if (matchId && user) {
+      fetchMessages();
+    }
+  }, [matchId, user]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -177,6 +182,7 @@ export const useMessaging = (matchId: string | null) => {
   return {
     messages,
     loading,
+    error,
     sendMessage
   };
 };

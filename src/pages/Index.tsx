@@ -54,7 +54,7 @@ const Index = () => {
               </div>
             </div>
             <h1 className="text-xl font-bold text-app-amber">
-              Ctrl +f
+              CTRL + F
             </h1>
           </div>
         </div>

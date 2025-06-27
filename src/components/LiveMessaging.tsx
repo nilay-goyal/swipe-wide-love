@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, ArrowLeft, Heart } from 'lucide-react';
+import { Send, ArrowLeft, Heart, AlertCircle } from 'lucide-react';
 import { useMessaging } from '@/hooks/useMessaging';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -22,17 +22,12 @@ interface LiveMessagingProps {
 
 const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
   const { user } = useAuth();
-  const { messages, loading, sendMessage } = useMessaging(match.id);
+  const { messages, loading, error, sendMessage } = useMessaging(match.id);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  console.log('LiveMessaging: Component rendered', { 
-    matchId: match.id, 
-    matchUser: match.matched_user,
-    messagesCount: messages.length,
-    loading 
-  });
+  console.log('LIVE MESSAGING RENDER:', { matchId: match.id, messagesCount: messages.length, error });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -45,14 +40,18 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || sending) return;
     
-    console.log('LiveMessaging: Sending message', { content: newMessage, matchId: match.id });
+    const messageContent = newMessage.trim();
+    setNewMessage(''); // Clear input immediately
     setSending(true);
     
     try {
-      await sendMessage(newMessage);
-      setNewMessage('');
+      console.log('LIVE MESSAGING SENDING MESSAGE:', messageContent);
+      await sendMessage(messageContent);
+      console.log('LIVE MESSAGING MESSAGE SENT SUCCESSFULLY');
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('LIVE MESSAGING SEND ERROR:', error);
+      // Optionally restore the message to input if sending failed
+      // setNewMessage(messageContent);
     } finally {
       setSending(false);
     }
@@ -65,7 +64,24 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
     }
   };
 
-  if (!match.matched_user) return null;
+  if (!match.matched_user) {
+    console.error('LIVE MESSAGING ERROR - NO MATCHED USER DATA');
+    return (
+      <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Error</h3>
+          <p className="text-gray-600">Unable to load match data</p>
+          <button
+            onClick={onBack}
+            className="mt-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col">
@@ -95,6 +111,16 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
           <Heart className="w-4 h-4 text-pink-500 fill-current" />
         </div>
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="bg-red-50 border-b border-red-200 p-3">
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="w-4 h-4 text-red-500" />
+            <span className="text-sm text-red-700">{error}</span>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -135,6 +161,7 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
                     minute: '2-digit',
                     hour12: true 
                   })}
+                  {message.id.startsWith('temp-') && ' (sending...)'}
                 </p>
               </div>
             </div>
@@ -153,7 +180,8 @@ const LiveMessaging = ({ match, onBack }: LiveMessagingProps) => {
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={`Message ${match.matched_user.name}...`}
-              className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              disabled={sending}
+              className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:opacity-50"
             />
           </div>
           <button
